@@ -1,4 +1,5 @@
 using MediLabo_Solutions.PatientService.Data;
+using MediLabo_Solutions.PatientService.Repositories;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -42,7 +43,8 @@ builder.Services.AddAuthorization();
 // Configuration des controllers
 builder.Services.AddControllers();
 
-// Enregistrement des services
+// Configuration des services et repositories
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 
 var app = builder.Build();
