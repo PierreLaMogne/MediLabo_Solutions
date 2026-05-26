@@ -1,1 +1,3 @@
-<Solution />
+<Solution>
+  <Project Path="MediLabo_Solutions.PatientService/MediLabo_Solutions.PatientService.csproj" />
+</Solution>
