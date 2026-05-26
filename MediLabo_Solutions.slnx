@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="MediLabo_Solutions.APIGateway/MediLabo_Solutions.APIGateway.csproj" Id="f121c408-e5aa-401f-998a-11fbcfddcbe9" />
   <Project Path="MediLabo_Solutions.PatientService/MediLabo_Solutions.PatientService.csproj" />
 </Solution>
