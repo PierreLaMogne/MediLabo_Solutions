@@ -1,5 +1,5 @@
 ﻿using MediLabo_Solutions.PatientService.Domain;
-using MediLabo_Solutions.PatientService.Models;
+using MediLabo_Solutions.Shared.Models;
 
 namespace MediLabo_Solutions.PatientService.Mappers
 {

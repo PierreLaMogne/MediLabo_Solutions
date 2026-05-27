@@ -25,4 +25,6 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
   </ItemGroup>
 
+  <Import Project="..\MediLabo_Solutions.Shared\MediLabo_Solutions.Shared.projitems" Label="Shared" />
+
 </Project>
