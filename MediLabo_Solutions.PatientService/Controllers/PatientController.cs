@@ -1,5 +1,5 @@
-﻿using MediLabo_Solutions.PatientService.Domain.Exceptions;
-using MediLabo_Solutions.PatientService.Models;
+﻿using MediLabo_Solutions.Shared.Exceptions;
+using MediLabo_Solutions.Shared.Models;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

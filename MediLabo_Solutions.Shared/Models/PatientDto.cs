@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MediLabo_Solutions.PatientService.Models
+namespace MediLabo_Solutions.Shared.Models
 {
     public class PatientDto
     {
