@@ -1,4 +1,4 @@
-﻿using MediLabo_Solutions.Shared.Exceptions;
+﻿using MediLabo_Solutions.PatientService.Domain.Exceptions;
 using MediLabo_Solutions.PatientService.Mappers;
 using MediLabo_Solutions.Shared.Models;
 using MediLabo_Solutions.PatientService.Repositories;
