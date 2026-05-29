@@ -9,98 +9,59 @@ namespace MediLabo_Solutions.PatientService.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public class PatientController(IPatientService service) : ControllerBase
     {
         [HttpGet]
+        [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllPatients()
         {
-            try
-            {
-                var patients = await service.GetAllPatientsAsync();
-                return Ok(patients);
-
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var patients = await service.GetAllPatientsAsync();
+            return Ok(patients);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(PatientDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPatientById(int id)
         {
-            try
-            {
-                var patient = await service.GetPatientByIdAsync(id);
-                return Ok(patient);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var patient = await service.GetPatientByIdAsync(id);
+            return Ok(patient);
         }
 
         [HttpGet("name/{nom}")]
+        [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPatientByName(string nom)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            try
-            {
-                var patients = await service.GetPatientsByNameAsync(nom);
-                return Ok(patients);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var patients = await service.GetPatientsByNameAsync(nom);
+            return Ok(patients);
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(PatientDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreatePatient([FromBody] PatientDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            try
-            {
-                var createdPatient = await service.AddPatientAsync(dto);
-                return CreatedAtAction(nameof(GetPatientById), new { id = createdPatient.Id }, createdPatient);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var createdPatient = await service.AddPatientAsync(dto);
+            return CreatedAtAction(nameof(GetPatientById), new { id = createdPatient.Id }, createdPatient);
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(PatientDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            try
-            {
-                dto.Id = id;
-                var updatedPatient = await service.UpdatePatientAsync(dto);
-                return Ok(updatedPatient);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            dto.Id = id;
+            var updatedPatient = await service.UpdatePatientAsync(dto);
+            return Ok(updatedPatient);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<IActionResult> DeletePatient(int id)
         {
-            try
-            {
-                var result = await service.DeletePatientAsync(id);
-                return Ok(result);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var result = await service.DeletePatientAsync(id);
+            return Ok(result);
         }
     }
 }
