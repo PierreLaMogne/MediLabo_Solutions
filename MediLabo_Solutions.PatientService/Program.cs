@@ -1,4 +1,5 @@
 using MediLabo_Solutions.PatientService.Data;
+using MediLabo_Solutions.PatientService.Extensions;
 using MediLabo_Solutions.PatientService.Repositories;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -80,6 +81,9 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
     DataSeed.Seed(context);
 }
+
+// Middleware de gestion des exceptions
+app.UseGlobalExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();
