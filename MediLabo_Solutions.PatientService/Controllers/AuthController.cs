@@ -1,4 +1,5 @@
-﻿using MediLabo_Solutions.Shared.Models;
+﻿using MediLabo_Solutions.PatientService.Domain.Exceptions;
+using MediLabo_Solutions.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,7 +19,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
             var adminPassword = configuration["AdminCredentials:Password"];
 
             if (request.Username != adminUsername || request.Password != adminPassword)
-                return Unauthorized("Identifiant ou mot de passe incorrect.");
+                throw new UnauthorizedException("Identifiant ou mot de passe incorrect.");
 
             var claims = new[]
             {
