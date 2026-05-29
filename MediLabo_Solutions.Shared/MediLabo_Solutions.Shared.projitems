@@ -9,7 +9,6 @@
     <Import_RootNamespace>MediLabo_Solutions.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\NotFoundException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\LoginRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\PatientDto.cs" />
   </ItemGroup>

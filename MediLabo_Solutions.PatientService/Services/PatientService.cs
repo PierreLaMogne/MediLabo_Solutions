@@ -1,4 +1,4 @@
-﻿using MediLabo_Solutions.Shared.Exceptions;
+﻿using MediLabo_Solutions.PatientService.Domain.Exceptions;
 using MediLabo_Solutions.PatientService.Mappers;
 using MediLabo_Solutions.Shared.Models;
 using MediLabo_Solutions.PatientService.Repositories;
@@ -40,11 +40,14 @@ namespace MediLabo_Solutions.PatientService.Services
 
         public async Task<PatientDto?> UpdatePatientAsync(PatientDto dto)
         {
-            var existingPatient = await repository.GetPatientByIdAsync(dto.Id);
-            var updatedPatient = await repository.UpdatePatientAsync(existingPatient!);
-            return updatedPatient != null
-                ? PatientMapper.ToDto(updatedPatient)
-                : throw new NotFoundException($@"Le patient avec l'identifiant {dto.Id} n'a pas été trouvé.");
+            var existingPatient = await repository.GetPatientByIdAsync(dto.Id)
+                ?? throw new NotFoundException($@"Le patient avec l'identifiant {dto.Id} n'a pas été trouvé.");
+
+            var patientToUpdate = PatientMapper.ToEntity(dto);
+            patientToUpdate.Id = dto.Id;
+
+            var updatedPatient = await repository.UpdatePatientAsync(patientToUpdate);
+            return PatientMapper.ToDto(updatedPatient!);
         }
 
         public async Task<bool> DeletePatientAsync(int id)

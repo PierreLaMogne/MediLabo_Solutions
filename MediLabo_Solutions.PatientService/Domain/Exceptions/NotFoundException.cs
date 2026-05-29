@@ -1,4 +1,4 @@
-﻿namespace MediLabo_Solutions.Shared.Exceptions
+﻿namespace MediLabo_Solutions.PatientService.Domain.Exceptions
 {
     public class NotFoundException : Exception
     {
