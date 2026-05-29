@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Ocelot.Provider.Polly;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +31,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Ajouter Ocelot
-builder.Services.AddOcelot();
+builder.Services.AddOcelot()
+    .AddPolly();
 
 // CORS si nécessaire
 builder.Services.AddCors(options =>
