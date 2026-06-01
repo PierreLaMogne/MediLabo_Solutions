@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="MediLabo_Solutions.APIGateway/MediLabo_Solutions.APIGateway.csproj" Id="f121c408-e5aa-401f-998a-11fbcfddcbe9" />
+  <Project Path="MediLabo_Solutions.Frontend/MediLabo_Solutions.Frontend.csproj" Id="7ee2d3dd-9e0e-4d2f-ae9d-57cb1bdc00f1" />
   <Project Path="MediLabo_Solutions.PatientService/MediLabo_Solutions.PatientService.csproj" />
   <Project Path="MediLabo_Solutions.Shared/MediLabo_Solutions.Shared.shproj" Id="90311f39-a15e-42a5-8e0e-7f70e892903e" />
 </Solution>
