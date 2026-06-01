@@ -1,5 +1,6 @@
 using MediLabo_Solutions.Frontend;
 using MediLabo_Solutions.Frontend.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
