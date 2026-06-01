@@ -23,6 +23,10 @@ builder.Services.AddBlazoredLocalStorage();
 // Enregistrement du AuthorizationMessageHandler
 builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
 
+// Ajout des services d'autorisation
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+
 // Configuration de HttpClient pour IAuthApiService (sans autorisation)
 builder.Services.AddHttpClient<IAuthApiService, AuthApiService>(client =>
 {
