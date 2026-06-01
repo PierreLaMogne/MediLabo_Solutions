@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HttpResponseExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\LoginRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\LoginResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\PatientDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ProblemDetailsResponse.cs" />
   </ItemGroup>
