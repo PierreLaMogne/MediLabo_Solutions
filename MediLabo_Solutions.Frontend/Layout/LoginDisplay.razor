@@ -1,5 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
 
 <AuthorizeView>
     <Authorized>
@@ -14,6 +13,6 @@
 @code{
     public void BeginLogOut()
     {
-        Navigation.NavigateToLogout("authentication/logout");
+        Navigation.NavigateTo("authentication/logout", forceLoad: true);
     }
 }
