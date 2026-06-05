@@ -28,6 +28,13 @@ namespace MediLabo_Solutions.Frontend.Services
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
+        public void MarkUserAsLoggedOut()
+        {
+            var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
+            var authState = Task.FromResult(new AuthenticationState(anonymousUser));
+            NotifyAuthenticationStateChanged(authState);
+        }
+
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
             var payload = jwt.Split('.')[1];

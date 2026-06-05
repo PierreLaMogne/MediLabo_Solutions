@@ -18,7 +18,9 @@ namespace MediLabo_Solutions.PatientService.Repositories
 
         public async Task<IEnumerable<Patient>> GetPatientsByNameAsync(string nom)
         {
-            return await context.Patients.Where(p => p.Nom == nom).ToListAsync();
+            return await context.Patients
+                .Where(p => EF.Functions.Like(p.Nom, $"%{nom}%"))
+                .ToListAsync();
         }
 
         public async Task<Patient> AddPatientAsync(Patient patient)

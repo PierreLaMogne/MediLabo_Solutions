@@ -1,0 +1,290 @@
+@page "/patients/search"
+@attribute [Authorize]
+@inject IPatientApiService PatientApiService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Rechercher un Patient - MédiLabo Solutions</PageTitle>
+
+<div class="container mt-4">
+    <h3><i class="bi bi-search"></i> Rechercher un Patient</h3>
+
+    <!-- Formulaire de recherche -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchType" class="form-label">Type de recherche</label>
+                    <select id="searchType" class="form-select" @bind="searchType">
+                        <option value="name">Par Nom/Prénom</option>
+                        <option value="id">Par Identifiant</option>
+                    </select>
+                </div>
+
+                @if (searchType == "name")
+                {
+                    <div class="col-md-6">
+                        <label for="searchName" class="form-label">Nom ou Prénom</label>
+                        <input type="text" 
+                               id="searchName" 
+                               class="form-control" 
+                               @bind="searchName" 
+                               @bind:event="oninput"
+                               @onkeypress="HandleKeyPress"
+                               placeholder="Entrez le nom ou le prénom..." />
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-6">
+                        <label for="searchId" class="form-label">Identifiant Patient</label>
+                        <input type="number" 
+                               id="searchId" 
+                               class="form-control" 
+                               @bind="searchId" 
+                               @bind:event="oninput"
+                               @onkeypress="HandleKeyPress"
+                               placeholder="Entrez l'identifiant..." 
+                               min="1" />
+                    </div>
+                }
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" @onclick="SearchPatients" disabled="@isSearching">
+                        @if (isSearching)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-search"></i>
+                        }
+                        Rechercher
+                    </button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(searchName) || searchId > 0)
+            {
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="ClearSearch">
+                        <i class="bi bi-x-circle"></i> Effacer la recherche
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Messages d'erreur -->
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    <!-- Résultats de recherche -->
+    @if (hasSearched)
+    {
+        @if (isSearching)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Recherche en cours...</span>
+                </div>
+                <p class="mt-2"><em>Recherche en cours...</em></p>
+            </div>
+        }
+        else if (searchResults == null || !searchResults.Any())
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill"></i> Aucun patient trouvé pour cette recherche.
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-primary" @onclick="CreatePatient">
+                        <i class="bi bi-plus-circle"></i> Créer un nouveau patient
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul"></i> 
+                        Résultats de recherche (@searchResults.Count() patient@(searchResults.Count() > 1 ? "s" : "") trouvé@(searchResults.Count() > 1 ? "s" : ""))
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Prénom</th>
+                                    <th>Nom</th>
+                                    <th>Date de Naissance</th>
+                                    <th>Âge</th>
+                                    <th>Genre</th>
+                                    <th>Téléphone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var patient in searchResults)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@patient.Id</td>
+                                        <td>@patient.Prénom</td>
+                                        <td>@patient.Nom</td>
+                                        <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
+                                        <td>@CalculateAge(patient.DateDeNaissance) ans</td>
+                                        <td>
+                                            <span class="badge bg-secondary">@GetGenreLabel(patient.Genre)</span>
+                                        </td>
+                                        <td>@(patient.NuméroDeTéléphone ?? "-")</td>
+                                        <td class="align-middle">
+                                            <button class="btn btn-sm btn-primary" 
+                                                        @onclick="() => ViewPatient(patient.Id)"
+                                                        title="Consulter"> Consulter</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-search" style="font-size: 4rem;"></i>
+            <p class="mt-3">Utilisez le formulaire ci-dessus pour rechercher un patient</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string searchType = "name";
+    private string searchName = string.Empty;
+    private int searchId = 0;
+    private IEnumerable<PatientDto>? searchResults;
+    private bool isSearching = false;
+    private bool hasSearched = false;
+    private string? errorMessage;
+
+    private async Task SearchPatients()
+    {
+        if (!ValidateSearch())
+        {
+            return;
+        }
+
+        isSearching = true;
+        hasSearched = true;
+        errorMessage = null;
+        searchResults = null;
+
+        try
+        {
+            if (searchType == "name")
+            {
+                if (!string.IsNullOrWhiteSpace(searchName))
+                {
+                    searchResults = await PatientApiService.GetPatientByNameAsync(searchName.Trim());
+                }
+            }
+            else // searchType == "id"
+            {
+                if (searchId > 0)
+                {
+                    var patient = await PatientApiService.GetPatientByIdAsync(searchId);
+                    searchResults = patient != null ? new[] { patient } : Enumerable.Empty<PatientDto>();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de la recherche : {ex.Message}";
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
+    private bool ValidateSearch()
+    {
+        if (searchType == "name" && string.IsNullOrWhiteSpace(searchName))
+        {
+            errorMessage = "Veuillez entrer un nom ou un prénom.";
+            return false;
+        }
+
+        if (searchType == "id" && searchId <= 0)
+        {
+            errorMessage = "Veuillez entrer un identifiant valide (supérieur à 0).";
+            return false;
+        }
+
+        return true;
+    }
+
+    private void ClearSearch()
+    {
+        searchName = string.Empty;
+        searchId = 0;
+        searchResults = null;
+        hasSearched = false;
+        errorMessage = null;
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchPatients();
+        }
+    }
+
+    private string GetGenreLabel(string genre)
+    {
+        return genre switch
+        {
+            "M" => "Masculin",
+            "F" => "Féminin",
+            "NB" => "Non-binaire",
+            _ => genre
+        };
+    }
+
+    private int CalculateAge(DateOnly birthDate)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = today.Year - birthDate.Year;
+
+        if (birthDate > today.AddYears(-age))
+        {
+            age--;
+        }
+
+        return age;
+    }
+
+    private void ViewPatient(int id)
+    {
+        NavigationManager.NavigateTo($"/patients/{id}");
+    }
+
+    private void EditPatient(int id)
+    {
+        NavigationManager.NavigateTo($"/patients/edit/{id}");
+    }
+
+    private void CreatePatient()
+    {
+        NavigationManager.NavigateTo("/patients/create");
+    }
+}

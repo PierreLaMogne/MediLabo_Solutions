@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MediLabo_Solutions.PatientService.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/patients")]
     [Authorize]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

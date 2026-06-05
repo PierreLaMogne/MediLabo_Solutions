@@ -15,7 +15,6 @@ namespace MediLabo_Solutions.Shared.Models
         public string Nom { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La date de naissance est obligatoire.")]
-        [RegularExpression(@"^\d{4}-\d{2}-\d{2}$", ErrorMessage = "La date de naissance doit être au format AAAA-MM-JJ.")]
         public DateOnly DateDeNaissance { get; set; }
 
         [Required(ErrorMessage = "Le genre est obligatoire.")]
