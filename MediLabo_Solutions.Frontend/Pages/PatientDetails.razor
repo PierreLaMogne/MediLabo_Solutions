@@ -1,0 +1,199 @@
+@page "/patients/{id:int}"
+@attribute [Authorize]
+@inject IPatientApiService PatientApiService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Détails du Patient - MédiLabo Solutions</PageTitle>
+
+<div class="container mt-4">
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2"><em>Chargement des informations du patient...</em></p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
+        </div>
+        <button class="btn btn-secondary" @onclick="GoBackToList">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </button>
+    }
+    else if (patient == null)
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-info-circle-fill"></i> Patient non trouvé.
+        </div>
+        <button class="btn btn-secondary" @onclick="GoBackToList">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </button>
+    }
+    else
+    {
+        <!-- En-tête avec actions -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-1">@patient.Prénom @patient.Nom</h3>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-calendar3"></i> @CalculateAge(patient.DateDeNaissance) ans
+                    <span class="ms-3"><i class="bi bi-gender-ambiguous"></i> @GetGenreLabel(patient.Genre)</span>
+                </p>
+            </div>
+            <div>
+                <button class="btn btn-warning me-2" @onclick="EditPatient">
+                    <i class="bi bi-pencil-fill"></i> Modifier
+                </button>
+                <button class="btn btn-secondary" @onclick="GoBackToList">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </button>
+            </div>
+        </div>
+
+        <!-- Informations personnelles -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-fill"></i> Informations Personnelles</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-hash"></i> ID Patient :
+                            </dt>
+                            <dd class="col-sm-7 fw-bold">@patient.Id</dd>
+
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-person-badge"></i> Prénom :
+                            </dt>
+                            <dd class="col-sm-7">@patient.Prénom</dd>
+
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-person-badge-fill"></i> Nom :
+                            </dt>
+                            <dd class="col-sm-7">@patient.Nom</dd>
+
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-calendar-event"></i> Date de Naissance :
+                            </dt>
+                            <dd class="col-sm-7">@patient.DateDeNaissance.ToString("dd/MM/yyyy")</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-cake2"></i> Âge :
+                            </dt>
+                            <dd class="col-sm-7">@CalculateAge(patient.DateDeNaissance) ans</dd>
+
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-gender-ambiguous"></i> Genre :
+                            </dt>
+                            <dd class="col-sm-7">@GetGenreLabel(patient.Genre)</dd>
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-geo-alt-fill"></i> Adresse :
+                            </dt>
+                            <dd class="col-sm-7">
+                                @if (!string.IsNullOrWhiteSpace(patient.AdressePostale))
+                                {
+                                    <span>@patient.AdressePostale</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Non renseignée</span>
+                                }
+                            </dd>
+                            <dt class="col-sm-5 text-muted">
+                                <i class="bi bi-phone-fill"></i> Téléphone :
+                            </dt>
+                            <dd class="col-sm-7">
+                                @if (!string.IsNullOrWhiteSpace(patient.NuméroDeTéléphone))
+                                {
+                                    <a href="tel:@patient.NuméroDeTéléphone" class="text-decoration-none">
+                                        @patient.NuméroDeTéléphone
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Non renseigné</span>
+                                }
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PatientDto? patient;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPatient();
+    }
+
+    private async Task LoadPatient()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            patient = await PatientApiService.GetPatientByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors du chargement du patient : {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetGenreLabel(string genre)
+    {
+        return genre switch
+        {
+            "M" => "Masculin",
+            "F" => "Féminin",
+            "NB" => "Non-binaire",
+            _ => genre
+        };
+    }
+
+    private int CalculateAge(DateOnly birthDate)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = today.Year - birthDate.Year;
+
+        if (birthDate > today.AddYears(-age))
+        {
+            age--;
+        }
+
+        return age;
+    }
+
+    private void EditPatient()
+    {
+        NavigationManager.NavigateTo($"/patients/edit/{Id}");
+    }
+
+    private void GoBackToList()
+    {
+        NavigationManager.NavigateTo("/patients");
+    }
+}
