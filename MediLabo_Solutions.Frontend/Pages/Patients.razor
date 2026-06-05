@@ -1,0 +1,142 @@
+﻿@page "/patients"
+@attribute [Authorize]
+@inject IPatientApiService PatientApiService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Liste des Patients - MédiLabo Solutions</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Liste des Patients</h3>
+    <button class="btn btn-success" @onclick="CreatePatient">
+        <i class="bi bi-plus-circle"></i> Nouveau Patient
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <p><em>Chargement des patients...</em></p>
+}
+else if (errorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+else if (patients == null || !patients.Any())
+{
+    <div class="alert alert-info">
+        <p>Aucun patient trouvé.</p>
+        <button class="btn btn-primary" @onclick="CreatePatient">
+            <i class="bi bi-plus-circle"></i> Créer le premier patient
+        </button>
+    </div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Prénom</th>
+                <th>Nom</th>
+                <th>Date de Naissance</th>
+                <th>Genre</th>
+                <th>Adresse</th>
+                <th>Téléphone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in patients)
+            {
+                <tr>
+                    <td>@patient.Id</td>
+                    <td>@patient.Prénom</td>
+                    <td>@patient.Nom</td>
+                    <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
+                    <td>@GetGenreLabel(patient.Genre)</td>
+                    <td>@(patient.AdressePostale ?? "-")</td>
+                    <td>@(patient.NuméroDeTéléphone ?? "-")</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => ViewPatient(patient.Id)">Consulter</button>
+                        <button class="btn btn-sm btn-warning" @onclick="() => EditPatient(patient.Id)">Modifier</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePatient(patient.Id)">Supprimer</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<PatientDto>? patients;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPatients();
+    }
+
+    private async Task LoadPatients()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            patients = await PatientApiService.GetAllPatientsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors du chargement des patients : {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetGenreLabel(string genre)
+    {
+        return genre switch
+        {
+            "M" => "Masculin",
+            "F" => "Féminin",
+            "NB" => "Non-binaire",
+            _ => genre
+        };
+    }
+
+    private void CreatePatient()
+    {
+        NavigationManager.NavigateTo("/patients/create");
+    }
+
+    private void ViewPatient(int id)
+    {
+        NavigationManager.NavigateTo($"/patients/{id}");
+    }
+
+    private void EditPatient(int id)
+    {
+        NavigationManager.NavigateTo($"/patients/edit/{id}");
+    }
+
+    private async Task DeletePatient(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Êtes-vous sûr de vouloir supprimer ce patient ?"))
+        {
+            var success = await PatientApiService.DeletePatientAsync(id);
+            if (success)
+            {
+                await LoadPatients();
+            }
+            else
+            {
+                errorMessage = "Erreur lors de la suppression du patient.";
+            }
+        }
+    }
+}
