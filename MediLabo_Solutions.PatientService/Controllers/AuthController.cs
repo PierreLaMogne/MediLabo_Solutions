@@ -24,7 +24,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, request.Username),
-                new Claim(ClaimTypes.Role, "User")
+                new Claim(ClaimTypes.Role, "Praticien")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
@@ -34,7 +34,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
                 issuer: configuration["Jwt:Issuer"],
                 audience: configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(24),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: credentials
             );
 

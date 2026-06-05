@@ -1,0 +1,77 @@
+@page "/login"
+@inject IAuthApiService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Connexion - MédiLabo Solutions</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <h3>Connexion</h3>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Nom d'utilisateur</label>
+                <InputText id="username" class="form-control" @bind-Value="loginRequest.Username" />
+                <ValidationMessage For="@(() => loginRequest.Username)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="loginRequest.Password" />
+                <ValidationMessage For="@(() => loginRequest.Password)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>Connexion en cours...</span>
+                }
+                else
+                {
+                    <span>Se connecter</span>
+                }
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginRequest loginRequest = new();
+    private string? errorMessage;
+    private bool isLoading;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var success = await AuthService.LoginAsync(loginRequest.Username, loginRequest.Password);
+
+            if (success)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Nom d'utilisateur ou mot de passe incorrect.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de la connexion : {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

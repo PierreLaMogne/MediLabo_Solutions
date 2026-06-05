@@ -1,4 +1,5 @@
 ﻿@inject NavigationManager Navigation
+@inject IAuthApiService AuthService
 
 <AuthorizeView>
     <Authorized>
@@ -6,13 +7,14 @@
         <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
     </Authorized>
     <NotAuthorized>
-        <a href="authentication/login">Log in</a>
+        <a href="/login">Log in</a>
     </NotAuthorized>
 </AuthorizeView>
 
 @code{
-    public void BeginLogOut()
+    public async Task BeginLogOut()
     {
-        Navigation.NavigateTo("authentication/logout", forceLoad: true);
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }
