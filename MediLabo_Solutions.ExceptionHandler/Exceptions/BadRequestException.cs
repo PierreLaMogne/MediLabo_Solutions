@@ -1,4 +1,4 @@
-﻿namespace MediLabo_Solutions.PatientService.Domain.Exceptions
+﻿namespace MediLabo_Solutions.ExceptionHandler.Exceptions
 {
     public class BadRequestException : Exception
     {

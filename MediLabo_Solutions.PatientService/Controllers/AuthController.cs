@@ -1,4 +1,4 @@
-﻿using MediLabo_Solutions.PatientService.Domain.Exceptions;
+﻿using MediLabo_Solutions.ExceptionHandler.Exceptions;
 using MediLabo_Solutions.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;

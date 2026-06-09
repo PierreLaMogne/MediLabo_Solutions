@@ -1,6 +1,7 @@
-using MediLabo_Solutions.PatientService.Middleware;
+using MediLabo_Solutions.ExceptionHandler.Middleware;
+using Microsoft.AspNetCore.Builder;
 
-namespace MediLabo_Solutions.PatientService.Extensions
+namespace MediLabo_Solutions.ExceptionHandler.Extensions
 {
     public static class MiddlewareExtensions
     {
