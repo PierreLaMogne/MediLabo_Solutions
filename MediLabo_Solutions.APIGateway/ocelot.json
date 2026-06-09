@@ -1,5 +1,7 @@
 {
   "Routes": [
+
+    // Patient Routes
     {
       "DownstreamPathTemplate": "/api/patients",
       "DownstreamScheme": "https",
@@ -49,13 +51,15 @@
       },
       "DangerousAcceptAnyServerCertificateValidator": true
     },
+
+    // Auth Routes
     {
       "DownstreamPathTemplate": "/api/auth/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 7147
+          "Port": 7137
         }
       ],
       "UpstreamPathTemplate": "/api/auth/{everything}",

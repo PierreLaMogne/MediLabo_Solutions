@@ -6,7 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace MediLabo_Solutions.PatientService.Controllers
+namespace MediLabo_Solutions.AuthService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
