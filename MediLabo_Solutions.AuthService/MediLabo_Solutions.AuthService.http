@@ -1,0 +1,6 @@
+@MediLabo_Solutions.AuthService_HostAddress = http://localhost:5071
+
+GET {{MediLabo_Solutions.AuthService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

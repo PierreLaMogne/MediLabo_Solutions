@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="MediLabo_Solutions.APIGateway/MediLabo_Solutions.APIGateway.csproj" Id="f121c408-e5aa-401f-998a-11fbcfddcbe9" />
+  <Project Path="MediLabo_Solutions.AuthService/MediLabo_Solutions.AuthService.csproj" />
   <Project Path="MediLabo_Solutions.ExceptionHandler/MediLabo_Solutions.ExceptionHandler.csproj" Id="b7753106-9d1d-4d38-84e9-37c21323fade" />
   <Project Path="MediLabo_Solutions.Frontend/MediLabo_Solutions.Frontend.csproj" Id="7ee2d3dd-9e0e-4d2f-ae9d-57cb1bdc00f1" />
   <Project Path="MediLabo_Solutions.PatientService/MediLabo_Solutions.PatientService.csproj" />
