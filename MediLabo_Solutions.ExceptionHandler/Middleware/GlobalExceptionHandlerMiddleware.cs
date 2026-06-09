@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MediLabo_Solutions.PatientService.Domain.Exceptions;
+using MediLabo_Solutions.ExceptionHandler.Exceptions;
 using System.Net;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace MediLabo_Solutions.PatientService.Middleware
+namespace MediLabo_Solutions.ExceptionHandler.Middleware
 {
     public class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {

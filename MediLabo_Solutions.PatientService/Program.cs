@@ -1,5 +1,5 @@
 using MediLabo_Solutions.PatientService.Data;
-using MediLabo_Solutions.PatientService.Extensions;
+using MediLabo_Solutions.ExceptionHandler.Extensions;
 using MediLabo_Solutions.PatientService.Repositories;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
