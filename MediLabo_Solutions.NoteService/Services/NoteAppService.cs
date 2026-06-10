@@ -5,7 +5,7 @@ using MediLabo_Solutions.Shared.Models;
 
 namespace MediLabo_Solutions.NoteService.Services
 {
-    public class NoteService(NoteRepository repo) : INoteService
+    public class NoteAppService(INoteRepository repo) : INoteAppService
     {
         public async Task<NoteDto> GetNoteByIdAsync(string id)
         {

@@ -32,17 +32,17 @@ namespace MediLabo_Solutions.NoteService.Repositories
         public async Task<bool> UpdateNoteAsync(Note note)
         {
             var result = await notes.ReplaceOneAsync(n => n.Id == note.Id, note);
-            return result.IsAcknowledged && result.ModifiedCount > 0
-                ? true
-                : throw new DatabaseException($"La note avec l'identifiant {note.Id} n'a pas été mise à jour.");
+            if (!result.IsAcknowledged || result.ModifiedCount == 0)
+                throw new DatabaseException($"La note avec l'identifiant {note.Id} n'a pas été mise à jour.");
+            return true;
         }
 
         public async Task<bool> DeleteNoteAsync(string id)
         {
             var result = await notes.DeleteOneAsync(n => n.Id == id);
-            return result.IsAcknowledged && result.DeletedCount > 0
-                ? true
-                : throw new DatabaseException($"La note avec l'identifiant {id} n'a pas été supprimée.");
+            if (!result.IsAcknowledged || result.DeletedCount == 0)
+                throw new DatabaseException($"La note avec l'identifiant {id} n'a pas été supprimée.");
+            return true;
         }
     }
 }

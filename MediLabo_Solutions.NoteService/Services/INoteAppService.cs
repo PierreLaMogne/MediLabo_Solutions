@@ -2,7 +2,7 @@
 
 namespace MediLabo_Solutions.NoteService.Services
 {
-    public interface INoteService
+    public interface INoteAppService
     {
         Task<NoteDto> GetNoteByIdAsync(string id);
         Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId);

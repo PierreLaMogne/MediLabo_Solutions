@@ -12,7 +12,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public class NoteController(INoteService service) : Controller
+    public class NoteController(INoteAppService service) : Controller
     {
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<NoteDto>), StatusCodes.Status200OK)]
