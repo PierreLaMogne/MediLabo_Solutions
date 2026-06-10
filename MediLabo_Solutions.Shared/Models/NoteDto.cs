@@ -10,6 +10,7 @@ namespace MediLabo_Solutions.Shared.Models
         public string? Id { get; set; }
 
         [Required(ErrorMessage = "L'ID du patient est obligatoire.")]
+        [Range(1, int.MaxValue, ErrorMessage = "L'ID du patient doit être un entier positif.")]
         public int PatientId { get; set; }
 
         [Required(ErrorMessage = "La note ne peut pas être vide")]

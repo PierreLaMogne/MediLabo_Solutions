@@ -2,6 +2,7 @@
 using MediLabo_Solutions.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace MediLabo_Solutions.NoteService.Controllers
 {
@@ -16,7 +17,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
     {
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<NoteDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetNotesByPatientId([FromQuery] int patientId)
+        public async Task<IActionResult> GetNotesByPatientId([FromQuery][Range(1, int.MaxValue)] int patientId)
         {
             var notes = await service.GetNotesByPatientIdAsync(patientId);
             return Ok(notes);
@@ -24,7 +25,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(NoteDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetNoteById([FromRoute] string id)
+        public async Task<IActionResult> GetNoteById([FromRoute][Required] string id)
         {
             var note = await service.GetNoteByIdAsync(id);
             return Ok(note);
@@ -32,7 +33,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(NoteDto), StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddNote([FromBody] NoteDto noteDto)
+        public async Task<IActionResult> AddNote([FromBody][Required] NoteDto noteDto)
         {
             var note = await service.AddNoteAsync(noteDto);
             return CreatedAtAction(nameof(GetNoteById), new { id = note.Id }, note);
@@ -41,7 +42,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateNote([FromRoute] string id, [FromBody] NoteDto noteDto)
+        public async Task<IActionResult> UpdateNote([FromRoute][Required] string id, [FromBody][Required] NoteDto noteDto)
         {
             noteDto.Id = id;
             await service.UpdateNoteAsync(noteDto);
@@ -50,7 +51,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
 
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> DeleteNote([FromRoute] string id)
+        public async Task<IActionResult> DeleteNote([FromRoute][Required] string id)
         {
             await service.DeleteNoteAsync(id);
             return NoContent();

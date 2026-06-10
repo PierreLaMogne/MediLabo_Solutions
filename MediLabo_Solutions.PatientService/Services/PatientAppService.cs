@@ -5,14 +5,14 @@ using MediLabo_Solutions.PatientService.Repositories;
 
 namespace MediLabo_Solutions.PatientService.Services
 {
-    public class PatientService(IPatientRepository repository) : IPatientService
+    public class PatientAppService(IPatientRepository repository) : IPatientAppService
     {
         public async Task<List<PatientDto>> GetAllPatientsAsync()
         {
             var patients = await repository.GetAllPatientsAsync();
             return patients.Any()
                 ? patients.Select(p => PatientMapper.ToDto(p)).ToList()
-                : throw new NotFoundException($@"Aucun patient n'a été trouvé.");
+                : new List<PatientDto>();
         }
 
         public async Task<PatientDto?> GetPatientByIdAsync(int id)
@@ -28,7 +28,7 @@ namespace MediLabo_Solutions.PatientService.Services
             var patients = await repository.GetPatientsByNameAsync(Name);
             return patients.Any()
                 ? patients.Select(p => PatientMapper.ToDto(p)).ToList()
-                : throw new NotFoundException($@"Aucun patient avec le nom {Name} n'a été trouvé.");
+                : new List<PatientDto>();
         }
 
         public async Task<PatientDto> AddPatientAsync(PatientDto dto)

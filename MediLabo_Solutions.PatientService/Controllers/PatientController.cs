@@ -3,6 +3,7 @@ using MediLabo_Solutions.Shared.Models;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace MediLabo_Solutions.PatientService.Controllers
 {
@@ -12,7 +13,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public class PatientController(IPatientService service) : ControllerBase
+    public class PatientController(IPatientAppService service) : ControllerBase
     {
         [HttpGet]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
@@ -24,7 +25,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(PatientDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetPatientById(int id)
+        public async Task<IActionResult> GetPatientById([FromRoute][Required] int id)
         {
             var patient = await service.GetPatientByIdAsync(id);
             return Ok(patient);
@@ -32,7 +33,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
 
         [HttpGet("name/{nom}")]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetPatientByName(string nom)
+        public async Task<IActionResult> GetPatientByName([FromRoute][Required] string nom)
         {
             var patients = await service.GetPatientsByNameAsync(nom);
             return Ok(patients);
@@ -40,7 +41,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(PatientDto), StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreatePatient([FromBody] PatientDto dto)
+        public async Task<IActionResult> CreatePatient([FromBody][Required] PatientDto dto)
         {
             var createdPatient = await service.AddPatientAsync(dto);
             return CreatedAtAction(nameof(GetPatientById), new { id = createdPatient.Id }, createdPatient);
@@ -49,7 +50,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(PatientDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientDto dto)
+        public async Task<IActionResult> UpdatePatient([FromRoute][Required] int id, [FromBody][Required] PatientDto dto)
         {
             dto.Id = id;
             var updatedPatient = await service.UpdatePatientAsync(dto);
@@ -57,11 +58,11 @@ namespace MediLabo_Solutions.PatientService.Controllers
         }
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        public async Task<IActionResult> DeletePatient(int id)
+        [ProducesResponseType(typeof(bool), StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeletePatient([FromRoute][Required] int id)
         {
             var result = await service.DeletePatientAsync(id);
-            return Ok(result);
+            return NoContent();
         }
     }
 }
