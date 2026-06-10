@@ -41,4 +41,11 @@ builder.Services.AddHttpClient<IPatientApiService, PatientApiService>(client =>
 })
 .AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
+// Configuration de HttpClient pour INoteApiService (avec autorisation)
+builder.Services.AddHttpClient<INoteApiService, NoteApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7104");
+})
+.AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+
 await builder.Build().RunAsync();
