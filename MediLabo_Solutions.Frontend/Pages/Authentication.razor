@@ -1,6 +1,48 @@
 ﻿@page "/authentication/{action}"
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILocalStorageService LocalStorage
+
 <RemoteAuthenticatorView Action="@Action" />
 
-@code{
+@code {
     [Parameter] public string? Action { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        switch (Action?.ToLower())
+        {
+            case "login":
+                // Rediriger vers la page de login
+                Navigation.NavigateTo("/login");
+                break;
+            
+            case "logout":
+                await PerformLogout();
+                break;
+            
+            case "logout-callback":
+                await PerformLogout();
+                break;
+            
+            default:
+                Navigation.NavigateTo("/");
+                break;
+        }
+    }
+
+    private async Task PerformLogout()
+    {
+        // Supprimer le token du localStorage
+        await LocalStorage.RemoveItemAsync("authToken");
+        
+        // Notifier le changement d'état d'authentification
+        if (AuthStateProvider is CustomAuthStateProvider customAuthStateProvider)
+        {
+            customAuthStateProvider.MarkUserAsLoggedOut();
+        }
+        
+        // Rediriger vers la page d'accueil
+        Navigation.NavigateTo("/", true);
+    }
 }

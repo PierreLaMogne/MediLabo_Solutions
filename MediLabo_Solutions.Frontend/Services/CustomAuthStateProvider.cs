@@ -17,6 +17,15 @@ namespace MediLabo_Solutions.Frontend.Services
             }
 
             var claims = ParseClaimsFromJwt(token);
+            
+            // Vérifier si le token est expiré
+            if (IsTokenExpired(claims))
+            {
+                // Supprimer le token expiré
+                await local.RemoveItemAsync("authToken");
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
+
             var identity = new ClaimsIdentity(claims, "jwt");
             var user = new ClaimsPrincipal(identity);
 
@@ -33,6 +42,21 @@ namespace MediLabo_Solutions.Frontend.Services
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
             var authState = Task.FromResult(new AuthenticationState(anonymousUser));
             NotifyAuthenticationStateChanged(authState);
+        }
+
+        private bool IsTokenExpired(IEnumerable<Claim> claims)
+        {
+            var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+            if (expClaim == null)
+                return true; // Pas de claim d'expiration = token invalide
+
+            if (long.TryParse(expClaim.Value, out var exp))
+            {
+                var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp);
+                return expirationTime <= DateTimeOffset.UtcNow;
+            }
+
+            return true; // Impossible de parser = token invalide
         }
 
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
