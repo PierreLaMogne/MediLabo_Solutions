@@ -14,10 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\MediLabo_Solutions.ExceptionHandler\MediLabo_Solutions.ExceptionHandler.csproj" />
   </ItemGroup>
 
