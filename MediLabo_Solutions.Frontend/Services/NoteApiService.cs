@@ -1,57 +1,82 @@
-using MediLabo_Solutions.Shared.Models;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using MediLabo_Solutions.Shared.Models;
+using MediLabo_Solutions.Shared.Extensions;
 
-namespace MediLabo_Solutions.Frontend.Services
+namespace MediLabo_Solutions.Frontend.Services;
+
+public class NoteApiService(HttpClient httpClient, ILogger<NoteApiService> logger) : INoteApiService
 {
-    public class NoteApiService : INoteApiService
+    public async Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId)
     {
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
-
-        public NoteApiService(HttpClient httpClient, IConfiguration configuration)
+        try
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
-            var noteServiceUrl = _configuration["NoteServiceUrl"] ?? "https://localhost:7002";
-            _httpClient.BaseAddress = new Uri(noteServiceUrl);
+            return await httpClient.GetFromJsonAsync<IEnumerable<NoteDto>>($"api/notes?patientId={patientId}") 
+                ?? throw new InvalidOperationException("La réponse ne peut pas être null");
         }
-
-        public async Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId)
+        catch (Exception ex)
         {
-            var response = await _httpClient.GetAsync($"api/notes?patientId={patientId}");
+            logger.LogError(ex, "Erreur lors de la récupération des notes pour le patient {PatientId}", patientId);
+            throw;
+        }
+    }
+
+    public async Task<NoteDto> GetNoteByIdAsync(string id)
+    {
+        try
+        {
+            return await httpClient.GetFromJsonAsync<NoteDto>($"api/notes/{id}") 
+                ?? throw new InvalidOperationException("La réponse ne peut pas être null");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erreur lors de la récupération de la note {NoteId}", id);
+            throw;
+        }
+    }
+
+    public async Task<NoteDto> CreateNoteAsync(NoteDto note)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync("api/notes", note);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<NoteDto>>() ?? [];
+            return await response.Content.ReadFromJsonAsync<NoteDto>() 
+                ?? throw new InvalidOperationException("La réponse ne peut pas être null");
         }
-
-        public async Task<NoteDto?> GetNoteByIdAsync(string id)
+        catch (Exception ex)
         {
-            var response = await _httpClient.GetAsync($"api/notes/{id}");
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadFromJsonAsync<NoteDto>();
-            }
-            return null;
+            logger.LogError(ex, "Erreur lors de la création de la note");
+            throw;
         }
+    }
 
-        public async Task<NoteDto> CreateNoteAsync(NoteDto note)
+    public async Task<bool> UpdateNoteAsync(string id, NoteDto note)
+    {
+        try
         {
-            var response = await _httpClient.PostAsJsonAsync("api/notes", note);
+            var response = await httpClient.PutAsJsonAsync($"api/notes/{id}", note);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<NoteDto>() ?? note;
+            return true;
         }
-
-        public async Task<bool> UpdateNoteAsync(string id, NoteDto note)
+        catch (Exception ex)
         {
-            note.Id = id;
-            var response = await _httpClient.PutAsJsonAsync($"api/notes/{id}", note);
-            return response.IsSuccessStatusCode;
+            logger.LogError(ex, "Erreur lors de la mise à jour de la note {NoteId}", id);
+            throw;
         }
+    }
 
-        public async Task<bool> DeleteNoteAsync(string id)
+    public async Task<bool> DeleteNoteAsync(string id)
+    {
+        try
         {
-            var response = await _httpClient.DeleteAsync($"api/notes/{id}");
-            return response.IsSuccessStatusCode;
+            var response = await httpClient.DeleteAsync($"api/notes/{id}");
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erreur lors de la suppression de la note {NoteId}", id);
+            throw;
         }
     }
 }

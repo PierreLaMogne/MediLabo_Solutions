@@ -89,6 +89,7 @@
       "UpstreamPathTemplate": "/api/notes/{everything}",
       "UpstreamHttpMethod": [
         "GET",
+        "POST",
         "PUT",
         "DELETE"
       ],
@@ -97,8 +98,8 @@
       },
       "QoSOptions": {
         "ExceptionsAllowedBeforeBreaking": 3,
-        "DurationOfBreak": 1000,
-        "TimeoutValue": 10000
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 30000
       },
       "DangerousAcceptAnyServerCertificateValidator": true
     },
