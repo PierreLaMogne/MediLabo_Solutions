@@ -14,6 +14,6 @@ namespace MediLabo_Solutions.Shared.Models
 
         [Required(ErrorMessage = "La note ne peut pas être vide")]
         public string Contenu { get; set; } = string.Empty;
-        public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public DateOnly Date { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using MediLabo_Solutions.ExceptionHandler.Extensions;
 using MediLabo_Solutions.NoteService.Configuration;
+using MediLabo_Solutions.NoteService.Data;
 using MediLabo_Solutions.NoteService.Domain;
 using MediLabo_Solutions.NoteService.Repositories;
 using MediLabo_Solutions.NoteService.Services;
@@ -83,6 +84,14 @@ builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteAppService, NoteAppService>();
 
 var app = builder.Build();
+
+// Seed de données
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
+    await NoteDataSeed.SeedAsync(notesCollection);
+}
 
 // Middleware de gestion des exceptions
 app.UseGlobalExceptionHandler();

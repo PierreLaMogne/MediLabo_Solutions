@@ -10,7 +10,7 @@ namespace MediLabo_Solutions.NoteService.Domain
         public string? Id { get; set; }
         public int PatientId { get; set; }
         public string Contenu { get; set; } = string.Empty;
-        public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public DateOnly Date { get; set; }
 
         public Note() { }
         public Note(int patientId, string contenu, DateOnly date)
@@ -20,4 +20,4 @@ namespace MediLabo_Solutions.NoteService.Domain
             Date = date;
         }
     }
-}
+}   
