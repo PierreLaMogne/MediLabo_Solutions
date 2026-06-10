@@ -13,7 +13,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public class PatientController(IPatientService service) : ControllerBase
+    public class PatientController(IPatientAppService service) : ControllerBase
     {
         [HttpGet]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]

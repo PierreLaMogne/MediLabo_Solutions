@@ -2,7 +2,7 @@
 
 namespace MediLabo_Solutions.PatientService.Services
 {
-    public interface IPatientService
+    public interface IPatientAppService
     {
         Task<List<PatientDto>> GetAllPatientsAsync();
         Task<PatientDto?> GetPatientByIdAsync(int id);

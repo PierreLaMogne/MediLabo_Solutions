@@ -65,7 +65,7 @@ builder.Services.AddProblemDetails();
 
 // Configuration des services et repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
-builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IPatientAppService, PatientAppService>();
 
 var app = builder.Build();
 
