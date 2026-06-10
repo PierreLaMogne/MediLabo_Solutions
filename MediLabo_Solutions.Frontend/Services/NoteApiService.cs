@@ -1,82 +1,67 @@
-using System.Net.Http.Json;
-using MediLabo_Solutions.Shared.Models;
 using MediLabo_Solutions.Shared.Extensions;
+using MediLabo_Solutions.Shared.Models;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MediLabo_Solutions.Frontend.Services;
 
-public class NoteApiService(HttpClient httpClient, ILogger<NoteApiService> logger) : INoteApiService
+public class NoteApiService(HttpClient httpClient, JsonSerializerOptions jsonOptions) : INoteApiService
 {
     public async Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId)
     {
-        try
-        {
-            return await httpClient.GetFromJsonAsync<IEnumerable<NoteDto>>($"api/notes?patientId={patientId}") 
-                ?? throw new InvalidOperationException("La réponse ne peut pas être null");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erreur lors de la récupération des notes pour le patient {PatientId}", patientId);
-            throw;
-        }
+        var response = await httpClient.GetAsync($"api/notes?patientId={patientId}");
+        await response.EnsureSuccessOrThrowAsync();
+
+        var notes = await response.Content.ReadFromJsonAsync<IEnumerable<NoteDto>>(jsonOptions);
+        return notes ?? Enumerable.Empty<NoteDto>();
     }
 
-    public async Task<NoteDto> GetNoteByIdAsync(string id)
+    public async Task<NoteDto?> GetNoteByIdAsync(string id)
     {
-        try
+        var response = await httpClient.GetAsync($"api/notes/{id}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            return await httpClient.GetFromJsonAsync<NoteDto>($"api/notes/{id}") 
-                ?? throw new InvalidOperationException("La réponse ne peut pas être null");
+            return null;
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erreur lors de la récupération de la note {NoteId}", id);
-            throw;
-        }
+
+        await response.EnsureSuccessOrThrowAsync();
+        return await response.Content.ReadFromJsonAsync<NoteDto>(jsonOptions);
     }
 
     public async Task<NoteDto> CreateNoteAsync(NoteDto note)
     {
-        try
-        {
-            var response = await httpClient.PostAsJsonAsync("api/notes", note);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<NoteDto>() 
-                ?? throw new InvalidOperationException("La réponse ne peut pas être null");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erreur lors de la création de la note");
-            throw;
-        }
+        var response = await httpClient.PostAsJsonAsync("api/notes", note);
+        await response.EnsureSuccessOrThrowAsync();
+
+        var createdNote = await response.Content.ReadFromJsonAsync<NoteDto>(jsonOptions);
+        return createdNote ?? throw new InvalidOperationException("La réponse du serveur est nulle.");
     }
 
     public async Task<bool> UpdateNoteAsync(string id, NoteDto note)
     {
-        try
+        note.Id = id;
+        var response = await httpClient.PutAsJsonAsync($"api/notes/{id}", note);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            var response = await httpClient.PutAsJsonAsync($"api/notes/{id}", note);
-            response.EnsureSuccessStatusCode();
-            return true;
+            return false;
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erreur lors de la mise à jour de la note {NoteId}", id);
-            throw;
-        }
+
+        await response.EnsureSuccessOrThrowAsync();
+        return true;
     }
 
     public async Task<bool> DeleteNoteAsync(string id)
     {
-        try
+        var response = await httpClient.DeleteAsync($"api/notes/{id}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            var response = await httpClient.DeleteAsync($"api/notes/{id}");
-            response.EnsureSuccessStatusCode();
-            return true;
+            return false;
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erreur lors de la suppression de la note {NoteId}", id);
-            throw;
-        }
+
+        await response.EnsureSuccessOrThrowAsync();
+        return true;
     }
 }
