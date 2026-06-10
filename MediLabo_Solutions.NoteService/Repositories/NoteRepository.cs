@@ -1,0 +1,48 @@
+﻿using MediLabo_Solutions.NoteService.Configuration;
+using MediLabo_Solutions.NoteService.Domain;
+using MediLabo_Solutions.ExceptionHandler.Exceptions;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+using System.Runtime.CompilerServices;
+
+namespace MediLabo_Solutions.NoteService.Repositories
+{
+    public class NoteRepository(IMongoCollection<Note> notes) : INoteRepository
+    {
+        public async Task<Note?> GetNoteByIdAsync(string id)
+        {
+            return await notes.Find(n => n.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<Note>> GetNotesByPatientIdAsync(int patientId)
+        {
+            return await notes.Find(n => n.PatientId == patientId)
+                .SortByDescending(n => n.Date)
+                .ToListAsync();
+        }
+
+        public async Task<Note> AddNoteAsync(Note note)
+        {
+            await notes.InsertOneAsync(note);
+            return note != null
+                ? note
+                : throw new DatabaseException("La note n'a pas pu être ajoutée.");
+        }
+
+        public async Task<bool> UpdateNoteAsync(Note note)
+        {
+            var result = await notes.ReplaceOneAsync(n => n.Id == note.Id, note);
+            if (!result.IsAcknowledged || result.ModifiedCount == 0)
+                throw new DatabaseException($"La note avec l'identifiant {note.Id} n'a pas été mise à jour.");
+            return true;
+        }
+
+        public async Task<bool> DeleteNoteAsync(string id)
+        {
+            var result = await notes.DeleteOneAsync(n => n.Id == id);
+            if (!result.IsAcknowledged || result.DeletedCount == 0)
+                throw new DatabaseException($"La note avec l'identifiant {id} n'a pas été supprimée.");
+            return true;
+        }
+    }
+}
