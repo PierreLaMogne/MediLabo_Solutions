@@ -13,6 +13,15 @@
     <PackageReference Include="MongoDB.Driver" Version="3.9.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MediLabo_Solutions.ExceptionHandler\MediLabo_Solutions.ExceptionHandler.csproj" />
+  </ItemGroup>
+
   <Import Project="..\MediLabo_Solutions.Shared\MediLabo_Solutions.Shared.projitems" Label="Shared" />
 
 </Project>

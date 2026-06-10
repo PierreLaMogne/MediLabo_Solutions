@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MediLabo_Solutions.ExceptionHandler.Exceptions
 {
-    internal class DatabaseException : Exception
+    public class DatabaseException : Exception
     {
         public DatabaseException(string message) : base(message)
         {
