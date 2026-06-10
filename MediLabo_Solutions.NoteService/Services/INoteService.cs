@@ -1,0 +1,13 @@
+﻿using MediLabo_Solutions.Shared.Models;
+
+namespace MediLabo_Solutions.NoteService.Services
+{
+    public interface INoteService
+    {
+        Task<NoteDto> GetNoteByIdAsync(string id);
+        Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId);
+        Task<NoteDto> AddNoteAsync(NoteDto dto);
+        Task<bool> UpdateNoteAsync(NoteDto dto);
+        Task<bool> DeleteNoteAsync(string id);
+    }
+}
