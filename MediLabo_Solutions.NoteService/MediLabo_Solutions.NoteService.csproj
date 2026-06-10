@@ -13,4 +13,6 @@
     <PackageReference Include="MongoDB.Driver" Version="3.9.0" />
   </ItemGroup>
 
+  <Import Project="..\MediLabo_Solutions.Shared\MediLabo_Solutions.Shared.projitems" Label="Shared" />
+
 </Project>
