@@ -55,4 +55,10 @@ public static class HttpResponseExtensions
             Console.WriteLine($"Erreur HTTP {(int)response.StatusCode}: {response.ReasonPhrase}");
         }
     }
+    public static async Task<T> HandleResponse<T>(this HttpResponseMessage response)
+    {
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>()
+            ?? throw new InvalidOperationException("La réponse ne peut pas être null");
+    }
 }

@@ -18,7 +18,10 @@ namespace MediLabo_Solutions.NoteService.Mappers
 
         public static Note ToEntity(NoteDto dto)
         {
-            var note = new Note(dto.PatientId, dto.Contenu, dto.Date);
+            var note = new Note(dto.PatientId, dto.Contenu, dto.Date)
+            {
+                Id = dto.Id
+            };
             return note;
         }
     }
