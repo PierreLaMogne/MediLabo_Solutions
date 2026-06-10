@@ -1,7 +1,9 @@
 @page "/patients/{id:int}"
 @attribute [Authorize]
 @inject IPatientApiService PatientApiService
+@inject INoteApiService NoteApiService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Détails du Patient - MédiLabo Solutions</PageTitle>
 
@@ -128,6 +130,59 @@
                 </div>
             </div>
         </div>
+
+        <!-- Notes du patient -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-journal-medical"></i> Notes Médicales</h5>
+                <button class="btn btn-light btn-sm" @onclick="AddNote">
+                    <i class="bi bi-plus-circle"></i> Ajouter une note
+                </button>
+            </div>
+            <div class="card-body">
+                @if (isLoadingNotes)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-success" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 mb-0"><em>Chargement des notes...</em></p>
+                    </div>
+                }
+                else if (notes == null || !notes.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
+                        <p class="mt-2">Aucune note médicale pour ce patient.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var note in notes.OrderByDescending(n => n.Date))
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-calendar-check text-success"></i>
+                                        @note.Date.ToString("dd/MM/yyyy")
+                                    </h6>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditNote(note.Id!)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteNote(note.Id!)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="mb-0 text-break">@note.Contenu</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     }
 </div>
 
@@ -136,12 +191,15 @@
     public int Id { get; set; }
 
     private PatientDto? patient;
+    private IEnumerable<NoteDto>? notes;
     private bool isLoading = true;
+    private bool isLoadingNotes = false;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadPatient();
+        await LoadNotes();
     }
 
     private async Task LoadPatient()
@@ -160,6 +218,26 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task LoadNotes()
+    {
+        isLoadingNotes = true;
+
+        try
+        {
+            notes = await NoteApiService.GetNotesByPatientIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            // Log silencieusement l'erreur, ne pas bloquer l'affichage du patient
+            Console.WriteLine($"Erreur lors du chargement des notes : {ex.Message}");
+            notes = [];
+        }
+        finally
+        {
+            isLoadingNotes = false;
         }
     }
 
@@ -190,6 +268,36 @@
     private void EditPatient()
     {
         NavigationManager.NavigateTo($"/patients/edit/{Id}");
+    }
+
+    private void AddNote()
+    {
+        NavigationManager.NavigateTo($"/patients/{Id}/notes/new");
+    }
+
+    private void EditNote(string noteId)
+    {
+        NavigationManager.NavigateTo($"/patients/{Id}/notes/edit/{noteId}");
+    }
+
+    private async Task DeleteNote(string noteId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Êtes-vous sûr de vouloir supprimer cette note ?");
+        if (confirmed)
+        {
+            try
+            {
+                var success = await NoteApiService.DeleteNoteAsync(noteId);
+                if (success)
+                {
+                    await LoadNotes(); // Recharger les notes
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la suppression : {ex.Message}");
+            }
+        }
     }
 
     private void GoBackToList()
