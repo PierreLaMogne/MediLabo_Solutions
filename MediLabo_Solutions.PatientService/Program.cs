@@ -3,7 +3,6 @@ using MediLabo_Solutions.ExceptionHandler.Extensions;
 using MediLabo_Solutions.PatientService.Repositories;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +11,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration de la base de données
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContext<PatientDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configuration de l'authentification JWT
@@ -68,7 +67,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
+    var context = services.GetRequiredService<PatientDbContext>();
     context.Database.Migrate();
     DataSeed.Seed(context);
 }

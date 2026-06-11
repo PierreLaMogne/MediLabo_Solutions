@@ -4,7 +4,7 @@ namespace MediLabo_Solutions.PatientService.Data
 {
     public class DataSeed
     {
-        public static void Seed(AppDbContext context)
+        public static void Seed(PatientDbContext context)
         {
             if (context.Patients.Any()) return;
 

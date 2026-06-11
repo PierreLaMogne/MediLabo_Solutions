@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MediLabo_Solutions.PatientService.Data
 {
-    public class AppDbContext : IdentityDbContext
+    public class PatientDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        public PatientDbContext(DbContextOptions<PatientDbContext> options) : base(options)
         {
         }
         

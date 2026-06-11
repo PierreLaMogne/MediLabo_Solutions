@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MediLabo_Solutions.PatientService.Repositories
 {
-    public class PatientRepository(AppDbContext context) : IPatientRepository
+    public class PatientRepository(PatientDbContext context) : IPatientRepository
     {
         public async Task<IEnumerable<Patient>> GetAllPatientsAsync()
         {
