@@ -18,7 +18,7 @@ namespace MediLabo_Solutions.Frontend.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                    var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
                     if (result?.Token != null)
                     {
                         await local.SetItemAsStringAsync(TokenKey, result.Token);

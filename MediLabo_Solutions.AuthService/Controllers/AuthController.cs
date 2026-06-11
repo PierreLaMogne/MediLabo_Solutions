@@ -1,4 +1,5 @@
-﻿using MediLabo_Solutions.ExceptionHandler.Exceptions;
+﻿using MediLabo_Solutions.AuthService.Services;
+using MediLabo_Solutions.ExceptionHandler.Exceptions;
 using MediLabo_Solutions.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -10,39 +11,17 @@ namespace MediLabo_Solutions.AuthService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(IConfiguration configuration) : ControllerBase
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public class AuthController(IAuthAppService authAppService) : ControllerBase
     {
         [HttpPost("login")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var adminUsername = configuration["AdminCredentials:Username"];
-            var adminPassword = configuration["AdminCredentials:Password"];
-
-            if (request.Username != adminUsername || request.Password != adminPassword)
-                throw new UnauthorizedException("Identifiant ou mot de passe incorrect.");
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, request.Username),
-                new Claim(ClaimTypes.Role, "Praticien")
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: configuration["Jwt:Issuer"],
-                audience: configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(30),
-                signingCredentials: credentials
-            );
-
-            return Ok(new
-            {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo
-            });
+            var response = await authAppService.AuthenticateAsync(request);
+            return Ok(response);
         }
     }
 }
