@@ -40,6 +40,23 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
+// Initialisation de la base de données et création de l'utilisateur admin
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AuthDbContext>();
+        await context.Database.MigrateAsync();
+        await DbInitializer.InitializeUserAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 // Middleware de gestion des exceptions globales
 app.UseGlobalExceptionHandler();
 
