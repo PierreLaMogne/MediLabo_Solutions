@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace MediLabo_Solutions.PatientService.Migrations
+namespace MediLabo_Solutions.PatientService.Data.Migrations
 {
     [DbContext(typeof(PatientDbContext))]
     [Migration("20260611165454_InitialPatientCreate")]
