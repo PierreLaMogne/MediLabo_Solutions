@@ -124,6 +124,22 @@
         "TimeoutValue": 10000
       },
       "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // RiskAssesment Routes
+    {
+      "DownstreamPathTemplate": "/api/riskassessment/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/api/riskassessment/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     }
   ],
   "GlobalConfiguration": {
