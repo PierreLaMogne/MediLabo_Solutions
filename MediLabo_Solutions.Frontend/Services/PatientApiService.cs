@@ -44,7 +44,7 @@ namespace MediLabo_Solutions.Frontend.Services
             await response.EnsureSuccessOrThrowAsync();
 
             var createdPatient = await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
-            return createdPatient ?? throw new InvalidOperationException("La réponse du serveur est nulle.");
+            return createdPatient ?? throw new InvalidOperationException("La création du patient a échoué.");
         }
 
         public async Task<PatientDto?> UpdatePatientAsync(int id, PatientDto patient)
