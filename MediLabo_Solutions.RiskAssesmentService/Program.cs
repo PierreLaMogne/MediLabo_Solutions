@@ -1,4 +1,4 @@
-using MediLabo_Solutions.RiskAssesmentService.Services;
+using MediLabo_Solutions.RiskAssessmentService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -50,7 +50,7 @@ builder.Services.AddControllers()
 builder.Services.AddProblemDetails();
 
 // Configuration des services et repositories
-builder.Services.AddScoped<IRiskAssesmentAppService, RiskAssesmentAppService>();
+builder.Services.AddScoped<IRiskAssessmentAppService, RiskAssessmentAppService>();
 
 // Configuration HTTP Client pour les services PatientService et NoteService
 builder.Services.AddHttpClient("PatientService", client =>

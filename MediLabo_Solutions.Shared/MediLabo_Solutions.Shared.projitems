@@ -11,7 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HttpResponseExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AuthResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\DiabetesRiskAssesmentDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\DiabetesRiskAssessmentDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\LoginRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\NoteDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\PatientDto.cs" />

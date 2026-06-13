@@ -1,8 +1,8 @@
 ﻿using MediLabo_Solutions.Shared.Models;
 
-namespace MediLabo_Solutions.RiskAssesmentService.Services
+namespace MediLabo_Solutions.RiskAssessmentService.Services
 {
-    public interface IRiskAssesmentAppService
+    public interface IRiskAssessmentAppService
     {
         Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int PatientId);
     }

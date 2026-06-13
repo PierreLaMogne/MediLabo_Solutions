@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["MediLabo_Solutions.RiskAssesmentService/MediLabo_Solutions.RiskAssesmentService.csproj", "MediLabo_Solutions.RiskAssesmentService/"]
-RUN dotnet restore "./MediLabo_Solutions.RiskAssesmentService/MediLabo_Solutions.RiskAssesmentService.csproj"
+COPY ["MediLabo_Solutions.RiskAssessmentService/MediLabo_Solutions.RiskAssessmentService.csproj", "MediLabo_Solutions.RiskAssessmentService/"]
+RUN dotnet restore "./MediLabo_Solutions.RiskAssessmentService/MediLabo_Solutions.RiskAssessmentService.csproj"
 COPY . .
-WORKDIR "/src/MediLabo_Solutions.RiskAssesmentService"
-RUN dotnet build "./MediLabo_Solutions.RiskAssesmentService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/MediLabo_Solutions.RiskAssessmentService"
+RUN dotnet build "./MediLabo_Solutions.RiskAssessmentService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Cette étape permet de publier le projet de service à copier dans la phase finale
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./MediLabo_Solutions.RiskAssesmentService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./MediLabo_Solutions.RiskAssessmentService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Cette phase est utilisée en production ou lors de l’exécution à partir de VS en mode normal (par défaut quand la configuration de débogage n’est pas utilisée)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MediLabo_Solutions.RiskAssesmentService.dll"]
+ENTRYPOINT ["dotnet", "MediLabo_Solutions.RiskAssessmentService.dll"]

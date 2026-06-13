@@ -2,9 +2,9 @@
 using MediLabo_Solutions.Shared.Models;
 using System.Diagnostics.Eventing.Reader;
 
-namespace MediLabo_Solutions.RiskAssesmentService.Services
+namespace MediLabo_Solutions.RiskAssessmentService.Services
 {
-    public class RiskAssesmentAppService(IHttpClientFactory httpClientFactory) : IRiskAssesmentAppService
+    public class RiskAssessmentAppService(IHttpClientFactory httpClientFactory) : IRiskAssessmentAppService
     {
         // Termes déclencheurs pour l'évaluation du risque de diabète
         private static readonly HashSet<string> TriggerTerms = new(StringComparer.OrdinalIgnoreCase)

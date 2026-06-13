@@ -126,7 +126,7 @@
       "DangerousAcceptAnyServerCertificateValidator": true
     },
 
-    // RiskAssesment Routes
+    // RiskAssessment Routes
     {
       "DownstreamPathTemplate": "/api/riskassessment/{everything}",
       "DownstreamScheme": "http",
