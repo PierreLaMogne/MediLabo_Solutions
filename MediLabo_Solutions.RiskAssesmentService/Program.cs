@@ -1,3 +1,4 @@
+using MediLabo_Solutions.RiskAssessmentService.Handlers;
 using MediLabo_Solutions.RiskAssessmentService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -49,21 +50,29 @@ builder.Services.AddControllers()
 
 builder.Services.AddProblemDetails();
 
+// Ajouter IHttpContextAccessor pour accéder au contexte HTTP actuel
+builder.Services.AddHttpContextAccessor();
+
+// Enregistrer le handler pour la propagation des tokens JWT
+builder.Services.AddScoped<JwtTokenPropagationHandler>();
+
 // Configuration des services et repositories
 builder.Services.AddScoped<IRiskAssessmentAppService, RiskAssessmentAppService>();
 
-// Configuration HTTP Client pour les services PatientService et NoteService
+// Configuration HTTP Client pour les services PatientService et NoteService avec propagation JWT
 builder.Services.AddHttpClient("PatientService", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Services:PatientService:BaseUrl"]!);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
+})
+.AddHttpMessageHandler<JwtTokenPropagationHandler>();
 
 builder.Services.AddHttpClient("NoteService", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Services:NoteService:BaseUrl"]!);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
+})
+.AddHttpMessageHandler<JwtTokenPropagationHandler>();
 
 var app = builder.Build();
 
