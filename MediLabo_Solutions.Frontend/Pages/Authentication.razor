@@ -3,7 +3,9 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ILocalStorageService LocalStorage
 
-<RemoteAuthenticatorView Action="@Action" />
+<div class="authentication-container">
+    <p>Authentification en cours...</p>
+</div>
 
 @code {
     [Parameter] public string? Action { get; set; }
