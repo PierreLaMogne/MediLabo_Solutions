@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MediLabo_Solutions.RiskAssessmentService.Controllers
 {
     [ApiController]
-    [Route("api/riskassesment")]
+    [Route("api/riskassessment")]
     [Authorize]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
