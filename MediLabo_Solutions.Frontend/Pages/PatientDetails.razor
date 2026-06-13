@@ -2,22 +2,14 @@
 @attribute [Authorize]
 @inject IPatientApiService PatientApiService
 @inject INoteApiService NoteApiService
+@inject IRiskAssessmentApiService RiskAssessmentApiService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Détails du Patient - MédiLabo Solutions</PageTitle>
 
 <div class="container mt-4">
-    @if (isLoading)
-    {
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Chargement...</span>
-            </div>
-            <p class="mt-2"><em>Chargement des informations du patient...</em></p>
-        </div>
-    }
-    else if (errorMessage != null)
+    @if (errorMessage != null)
     {
         <div class="alert alert-danger" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
@@ -26,116 +18,187 @@
             <i class="bi bi-arrow-left"></i> Retour à la liste
         </button>
     }
-    else if (patient == null)
-    {
-        <div class="alert alert-warning" role="alert">
-            <i class="bi bi-info-circle-fill"></i> Patient non trouvé.
-        </div>
-        <button class="btn btn-secondary" @onclick="GoBackToList">
-            <i class="bi bi-arrow-left"></i> Retour à la liste
-        </button>
-    }
     else
     {
         <!-- En-tête avec actions -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h3 class="mb-1">@patient.Prénom @patient.Nom</h3>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-calendar3"></i> @CalculateAge(patient.DateDeNaissance) ans
-                    <span class="ms-3"><i class="bi bi-gender-ambiguous"></i> @GetGenreLabel(patient.Genre)</span>
-                </p>
+        @if (isLoadingPatient)
+        {
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="placeholder-glow w-50">
+                    <span class="placeholder col-6"></span>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" @onclick="GoBackToList">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </button>
+                </div>
             </div>
-            <div>
-                <button class="btn btn-warning me-2" @onclick="EditPatient">
-                    <i class="bi bi-pencil-fill"></i> Modifier
-                </button>
-                <button class="btn btn-secondary" @onclick="GoBackToList">
-                    <i class="bi bi-arrow-left"></i> Retour
-                </button>
+        }
+        else if (patient == null)
+        {
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-info-circle-fill"></i> Patient non trouvé.
+            </div>
+            <button class="btn btn-secondary" @onclick="GoBackToList">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </button>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="mb-1">@patient.Prénom @patient.Nom</h3>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-calendar3"></i> @CalculateAge(patient.DateDeNaissance) ans
+                        <span class="ms-3"><i class="bi bi-gender-ambiguous"></i> @GetGenreLabel(patient.Genre)</span>
+                    </p>
+                </div>
+                <div>
+                    <button class="btn btn-warning me-2" @onclick="EditPatient">
+                        <i class="bi bi-pencil-fill"></i> Modifier
+                    </button>
+                    <button class="btn btn-secondary" @onclick="GoBackToList">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Évaluation du risque diabétique (se charge indépendamment) -->
+        <div class="card mb-4 shadow-sm @GetRiskCardClass()">
+            <div class="card-header @GetRiskHeaderClass() text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-activity"></i> Évaluation du Risque Diabétique
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (isLoadingRisk)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 mb-0"><em>Analyse en cours...</em></p>
+                    </div>
+                }
+                else if (diabetesRiskAssessment != null)
+                {
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h4 class="mb-2">
+                                <span class="badge @GetRiskBadgeClass()">
+                                    @GetRiskLevelLabel(diabetesRiskAssessment.RiskLevel)
+                                </span>
+                            </h4>
+                            <p class="mb-0">@GetRiskLevelMessage(diabetesRiskAssessment.RiskLevel)</p>
+                        </div>
+                        <div>
+                            <i class="@GetRiskIcon()" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted text-center py-3">
+                        <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Aucune évaluation disponible pour ce patient.</p>
+                    </div>
+                }
             </div>
         </div>
 
-        <!-- Informations personnelles -->
+        <!-- Informations personnelles (se charge indépendamment) -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-person-fill"></i> Informations Personnelles</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <dl class="row mb-0">
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-hash"></i> ID Patient :
-                            </dt>
-                            <dd class="col-sm-7 fw-bold">@patient.Id</dd>
-
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-person-badge"></i> Prénom :
-                            </dt>
-                            <dd class="col-sm-7">@patient.Prénom</dd>
-
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-person-badge-fill"></i> Nom :
-                            </dt>
-                            <dd class="col-sm-7">@patient.Nom</dd>
-
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-calendar-event"></i> Date de Naissance :
-                            </dt>
-                            <dd class="col-sm-7">@patient.DateDeNaissance.ToString("dd/MM/yyyy")</dd>
-                        </dl>
+                @if (isLoadingPatient)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 mb-0"><em>Chargement des informations...</em></p>
                     </div>
-                    <div class="col-md-6">
-                        <dl class="row mb-0">
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-cake2"></i> Âge :
-                            </dt>
-                            <dd class="col-sm-7">@CalculateAge(patient.DateDeNaissance) ans</dd>
+                }
+                else if (patient != null)
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-hash"></i> ID Patient :
+                                </dt>
+                                <dd class="col-sm-7 fw-bold">@patient.Id</dd>
 
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-gender-ambiguous"></i> Genre :
-                            </dt>
-                            <dd class="col-sm-7">@GetGenreLabel(patient.Genre)</dd>
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-geo-alt-fill"></i> Adresse :
-                            </dt>
-                            <dd class="col-sm-7">
-                                @if (!string.IsNullOrWhiteSpace(patient.AdressePostale))
-                                {
-                                    <span>@patient.AdressePostale</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">Non renseignée</span>
-                                }
-                            </dd>
-                            <dt class="col-sm-5 text-muted">
-                                <i class="bi bi-phone-fill"></i> Téléphone :
-                            </dt>
-                            <dd class="col-sm-7">
-                                @if (!string.IsNullOrWhiteSpace(patient.NuméroDeTéléphone))
-                                {
-                                    <a href="tel:@patient.NuméroDeTéléphone" class="text-decoration-none">
-                                        @patient.NuméroDeTéléphone
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">Non renseigné</span>
-                                }
-                            </dd>
-                        </dl>
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-person-badge"></i> Prénom :
+                                </dt>
+                                <dd class="col-sm-7">@patient.Prénom</dd>
+
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-person-badge-fill"></i> Nom :
+                                </dt>
+                                <dd class="col-sm-7">@patient.Nom</dd>
+
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-calendar-event"></i> Date de Naissance :
+                                </dt>
+                                <dd class="col-sm-7">@patient.DateDeNaissance.ToString("dd/MM/yyyy")</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-cake2"></i> Âge :
+                                </dt>
+                                <dd class="col-sm-7">@CalculateAge(patient.DateDeNaissance) ans</dd>
+
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-gender-ambiguous"></i> Genre :
+                                </dt>
+                                <dd class="col-sm-7">@GetGenreLabel(patient.Genre)</dd>
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-geo-alt-fill"></i> Adresse :
+                                </dt>
+                                <dd class="col-sm-7">
+                                    @if (!string.IsNullOrWhiteSpace(patient.AdressePostale))
+                                    {
+                                        <span>@patient.AdressePostale</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">Non renseignée</span>
+                                    }
+                                </dd>
+                                <dt class="col-sm-5 text-muted">
+                                    <i class="bi bi-phone-fill"></i> Téléphone :
+                                </dt>
+                                <dd class="col-sm-7">
+                                    @if (!string.IsNullOrWhiteSpace(patient.NuméroDeTéléphone))
+                                    {
+                                        <a href="tel:@patient.NuméroDeTéléphone" class="text-decoration-none">
+                                            @patient.NuméroDeTéléphone
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">Non renseigné</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
 
-        <!-- Notes du patient -->
+        <!-- Notes du patient (se charge indépendamment) -->
         <div class="card shadow-sm">
             <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-journal-medical"></i> Notes Médicales</h5>
-                <button class="btn btn-light btn-sm" @onclick="AddNote">
+                <button class="btn btn-light btn-sm" @onclick="AddNote" disabled="@isLoadingPatient">
                     <i class="bi bi-plus-circle"></i> Ajouter une note
                 </button>
             </div>
@@ -192,19 +255,25 @@
 
     private PatientDto? patient;
     private IEnumerable<NoteDto>? notes;
-    private bool isLoading = true;
-    private bool isLoadingNotes = false;
+    private DiabetesRiskAssessmentDto? diabetesRiskAssessment;
+    private bool isLoadingPatient = true;
+    private bool isLoadingNotes = true;
+    private bool isLoadingRisk = true;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadPatient();
-        await LoadNotes();
+        // Lancer toutes les opérations en parallèle
+        await Task.WhenAll(
+            LoadPatient(),
+            LoadNotes(),
+            LoadRiskAssessment()
+        );
     }
 
     private async Task LoadPatient()
     {
-        isLoading = true;
+        isLoadingPatient = true;
         errorMessage = null;
 
         try
@@ -217,7 +286,8 @@
         }
         finally
         {
-            isLoading = false;
+            isLoadingPatient = false;
+            StateHasChanged(); // Forcer le re-render
         }
     }
 
@@ -231,14 +301,111 @@
         }
         catch (Exception ex)
         {
-            // Log silencieusement l'erreur, ne pas bloquer l'affichage du patient
             Console.WriteLine($"Erreur lors du chargement des notes : {ex.Message}");
             notes = [];
         }
         finally
         {
             isLoadingNotes = false;
+            StateHasChanged(); // Forcer le re-render
         }
+    }
+
+    private async Task LoadRiskAssessment()
+    {
+        isLoadingRisk = true;
+
+        try
+        {
+            diabetesRiskAssessment = await RiskAssessmentApiService.GetRiskAssessmentAsync(Id);
+        }
+        catch (Exception)
+        {
+            diabetesRiskAssessment = null;
+        }
+        finally
+        {
+            isLoadingRisk = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetRiskLevelLabel(RiskLevel riskLevel)
+    {
+        return riskLevel switch
+        {
+            RiskLevel.None => "Aucun Risque",
+            RiskLevel.Borderline => "Risque Limité",
+            RiskLevel.InDanger => "Risque Élevé",
+            RiskLevel.EarlyOnset => "Risque Très Élevé",
+            _ => riskLevel.ToString()
+        };
+    }
+
+    private string GetRiskBadgeClass()
+    {
+        if (diabetesRiskAssessment == null) return "bg-secondary";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.None => "bg-success",
+            RiskLevel.Borderline => "bg-warning",
+            RiskLevel.InDanger => "bg-danger",
+            RiskLevel.EarlyOnset => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetRiskLevelMessage(RiskLevel riskLevel)
+    {
+        return riskLevel switch
+        {
+            RiskLevel.None => "Le patient ne présente aucun risque de diabète.",
+            RiskLevel.Borderline => "Le patient présente un risque limité de diabète. Une surveillance régulière est recommandée.",
+            RiskLevel.InDanger => "Le patient présente un risque élevé de diabète. Des mesures préventives sont nécessaires.",
+            RiskLevel.EarlyOnset => "Le patient présente un risque très élevé de diabète. Une intervention médicale immédiate est recommandée.",
+            _ => "Aucune information disponible sur le niveau de risque."
+        };
+    }
+
+    private string GetRiskCardClass()
+    {
+        if (diabetesRiskAssessment == null) return "";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.InDanger => "border-danger",
+            RiskLevel.EarlyOnset => "border-dark border-2",
+            _ => ""
+        };
+    }
+
+    private string GetRiskHeaderClass()
+    {
+        if (diabetesRiskAssessment == null) return "bg-secondary";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.None => "bg-success",
+            RiskLevel.Borderline => "bg-warning",
+            RiskLevel.InDanger => "bg-danger",
+            RiskLevel.EarlyOnset => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetRiskIcon()
+    {
+        if (diabetesRiskAssessment == null) return "bi bi-question-circle text-muted";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.None => "bi bi-check-circle-fill text-success",
+            RiskLevel.Borderline => "bi bi-exclamation-triangle-fill text-warning",
+            RiskLevel.InDanger => "bi bi-exclamation-octagon-fill text-danger",
+            RiskLevel.EarlyOnset => "bi bi-shield-fill-exclamation text-dark",
+            _ => "bi bi-question-circle text-muted"
+        };
     }
 
     private string GetGenreLabel(string genre)
@@ -290,7 +457,8 @@
                 var success = await NoteApiService.DeleteNoteAsync(noteId);
                 if (success)
                 {
-                    await LoadNotes(); // Recharger les notes
+                    await LoadNotes();
+                    await LoadRiskAssessment(); // Recharger l'évaluation après suppression d'une note
                 }
             }
             catch (Exception ex)

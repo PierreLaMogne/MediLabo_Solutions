@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace MediLabo_Solutions.AuthService.Migrations
+namespace MediLabo_Solutions.AuthService.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
     [Migration("20260611165347_InitialUserCreate")]

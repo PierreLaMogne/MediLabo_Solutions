@@ -48,4 +48,11 @@ builder.Services.AddHttpClient<INoteApiService, NoteApiService>(client =>
 })
 .AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
+// Configuration de HttpClient pour IRiskAssessmentApiService (avec autorisation)
+builder.Services.AddHttpClient<IRiskAssessmentApiService, RiskAssessmentApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7104");
+})
+.AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+
 await builder.Build().RunAsync();

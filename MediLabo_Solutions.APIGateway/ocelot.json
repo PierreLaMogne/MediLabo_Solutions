@@ -124,6 +124,31 @@
         "TimeoutValue": 10000
       },
       "DangerousAcceptAnyServerCertificateValidator": true
+    },
+
+    // RiskAssessment Routes
+    {
+      "DownstreamPathTemplate": "/api/riskassessment/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7184
+        }
+      ],
+      "UpstreamPathTemplate": "/api/riskassessment/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 1000,
+        "TimeoutValue": 10000
+      },
+      "DangerousAcceptAnyServerCertificateValidator": true
     }
   ],
   "GlobalConfiguration": {
