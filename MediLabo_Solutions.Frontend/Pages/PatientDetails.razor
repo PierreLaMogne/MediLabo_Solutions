@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject IPatientApiService PatientApiService
 @inject INoteApiService NoteApiService
+@inject IRiskAssessmentApiService RiskAssessmentApiService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
@@ -53,6 +54,49 @@
                 <button class="btn btn-secondary" @onclick="GoBackToList">
                     <i class="bi bi-arrow-left"></i> Retour
                 </button>
+            </div>
+        </div>
+
+        <!-- Évaluation du risque diabétique -->
+        <div class="card mb-4 shadow-sm @GetRiskCardClass()">
+            <div class="card-header @GetRiskHeaderClass() text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-activity"></i> Évaluation du Risque Diabétique
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (isLoadingRisk)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 mb-0"><em>Analyse en cours...</em></p>
+                    </div>
+                }
+                else if (diabetesRiskAssessment != null)
+                {
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h4 class="mb-2">
+                                <span class="badge @GetRiskBadgeClass()">
+                                    @GetRiskLevelLabel(diabetesRiskAssessment.RiskLevel)
+                                </span>
+                            </h4>
+                            <p class="mb-0">@GetRiskLevelMessage(diabetesRiskAssessment.RiskLevel)</p>
+                        </div>
+                        <div>
+                            <i class="@GetRiskIcon()" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted text-center py-3">
+                        <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Aucune évaluation disponible pour ce patient.</p>
+                    </div>
+                }
             </div>
         </div>
 
@@ -192,14 +236,16 @@
 
     private PatientDto? patient;
     private IEnumerable<NoteDto>? notes;
+    private DiabetesRiskAssessmentDto? diabetesRiskAssessment;
     private bool isLoading = true;
     private bool isLoadingNotes = false;
+    private bool isLoadingRisk = false;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadPatient();
-        await LoadNotes();
+        await Task.WhenAll(LoadNotes(), LoadRiskAssessment());
     }
 
     private async Task LoadPatient()
@@ -231,7 +277,6 @@
         }
         catch (Exception ex)
         {
-            // Log silencieusement l'erreur, ne pas bloquer l'affichage du patient
             Console.WriteLine($"Erreur lors du chargement des notes : {ex.Message}");
             notes = [];
         }
@@ -239,6 +284,103 @@
         {
             isLoadingNotes = false;
         }
+    }
+
+    private async Task LoadRiskAssessment()
+    {
+        isLoadingRisk = true;
+
+        try
+        {
+            diabetesRiskAssessment = await RiskAssessmentApiService.GetRiskAssessmentAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement de l'évaluation du risque : {ex.Message}");
+            diabetesRiskAssessment = null;
+        }
+        finally
+        {
+            isLoadingRisk = false;
+        }
+    }
+
+    private string GetRiskLevelLabel(RiskLevel riskLevel)
+    {
+        return riskLevel switch
+        {
+            RiskLevel.None => "Aucun Risque",
+            RiskLevel.Borderline => "Risque Limité",
+            RiskLevel.InDanger => "Risque Élevé",
+            RiskLevel.EarlyOnset => "Risque Très Élevé",
+            _ => riskLevel.ToString()
+        };
+    }
+
+    private string GetRiskBadgeClass()
+    {
+        if (diabetesRiskAssessment == null) return "bg-secondary";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.None => "bg-success",
+            RiskLevel.Borderline => "bg-warning",
+            RiskLevel.InDanger => "bg-danger",
+            RiskLevel.EarlyOnset => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetRiskLevelMessage(RiskLevel riskLevel)
+    {
+        return riskLevel switch
+        {
+            RiskLevel.None => "Le patient ne présente aucun risque de diabète.",
+            RiskLevel.Borderline => "Le patient présente un risque limité de diabète. Une surveillance régulière est recommandée.",
+            RiskLevel.InDanger => "Le patient présente un risque élevé de diabète. Des mesures préventives sont nécessaires.",
+            RiskLevel.EarlyOnset => "Le patient présente un risque très élevé de diabète. Une intervention médicale immédiate est recommandée.",
+            _ => "Aucune information disponible sur le niveau de risque."
+        };
+    }
+
+    private string GetRiskCardClass()
+    {
+        if (diabetesRiskAssessment == null) return "";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.InDanger => "border-danger",
+            RiskLevel.EarlyOnset => "border-dark border-2",
+            _ => ""
+        };
+    }
+
+    private string GetRiskHeaderClass()
+    {
+        if (diabetesRiskAssessment == null) return "bg-secondary";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.None => "bg-success",
+            RiskLevel.Borderline => "bg-warning",
+            RiskLevel.InDanger => "bg-danger",
+            RiskLevel.EarlyOnset => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetRiskIcon()
+    {
+        if (diabetesRiskAssessment == null) return "bi bi-question-circle text-muted";
+
+        return diabetesRiskAssessment.RiskLevel switch
+        {
+            RiskLevel.None => "bi bi-check-circle-fill text-success",
+            RiskLevel.Borderline => "bi bi-exclamation-triangle-fill text-warning",
+            RiskLevel.InDanger => "bi bi-exclamation-octagon-fill text-danger",
+            RiskLevel.EarlyOnset => "bi bi-shield-fill-exclamation text-dark",
+            _ => "bi bi-question-circle text-muted"
+        };
     }
 
     private string GetGenreLabel(string genre)
@@ -290,7 +432,8 @@
                 var success = await NoteApiService.DeleteNoteAsync(noteId);
                 if (success)
                 {
-                    await LoadNotes(); // Recharger les notes
+                    await LoadNotes();
+                    await LoadRiskAssessment(); // Recharger l'évaluation après suppression d'une note
                 }
             }
             catch (Exception ex)
