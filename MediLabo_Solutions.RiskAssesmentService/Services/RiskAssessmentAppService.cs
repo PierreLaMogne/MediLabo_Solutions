@@ -1,6 +1,5 @@
 ﻿using MediLabo_Solutions.ExceptionHandler.Exceptions;
 using MediLabo_Solutions.Shared.Models;
-using System.Diagnostics.Eventing.Reader;
 
 namespace MediLabo_Solutions.RiskAssessmentService.Services
 {
@@ -73,22 +72,22 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         private async Task<List<NoteDto>> GetPatientNotesAsync(int patientId)
         {
             var client = httpClientFactory.CreateClient("NoteService");
-            var response = await client.GetAsync($"/api/notes/patient/{patientId}");
+            var response = await client.GetAsync($"/api/notes?patientId={patientId}");
+            
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadFromJsonAsync<List<NoteDto>>() ?? new List<NoteDto>();
+            
             return new List<NoteDto>();
         }
 
         private RiskLevel DetermineRiskLevel(int age, string genre, int triggerTermsCount)
         {
-            // Règles d'évaluation du risque de diabète
-
             // Pas de risque pour 0 ou 1 terme déclencheur trouvé
             if (triggerTermsCount <= 1)
                 return RiskLevel.None;
 
             // Cas pour les patients de plus de 30 ans
-            else if (age > 30)
+            if (age > 30)
             {
                 if (triggerTermsCount >= 2 && triggerTermsCount <= 5)
                     return RiskLevel.Borderline;
@@ -98,25 +97,28 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
                     return RiskLevel.EarlyOnset;
                 else
                     return RiskLevel.None;
-
             }
 
             // Cas pour les patients masculins ou non-binaires de 30 ans ou moins
-            else if (genre == "M" || genre == "NB")
+            if (genre == "M" || genre == "NB")
             {
                 if (triggerTermsCount >= 3 && triggerTermsCount <= 5)
                     return RiskLevel.InDanger;
                 else if (triggerTermsCount > 5)
                     return RiskLevel.EarlyOnset;
+                else
+                    return RiskLevel.None;
             }
 
             // Cas pour les patients féminins de 30 ans ou moins
-            else if (genre == "F")
+            if (genre == "F")
             {
                 if (triggerTermsCount >= 4 && triggerTermsCount <= 7)
                     return RiskLevel.InDanger;
                 else if (triggerTermsCount > 7)
                     return RiskLevel.EarlyOnset;
+                else
+                    return RiskLevel.None;
             }
 
             return RiskLevel.None;
