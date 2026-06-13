@@ -7,13 +7,13 @@ namespace MediLabo_Solutions.Frontend.Services
 {
     public class RiskAssessmentApiService(HttpClient httpClient, JsonSerializerOptions jsonOptions) : IRiskAssessmentApiService
     {
-        public async Task<DiabetesRiskAssessmentDto> GetRiskAssessmentAsync(int patientId)
+        public async Task<DiabetesRiskAssessmentDto?> GetRiskAssessmentAsync(int patientId)
         {
             var response = await httpClient.GetAsync($"api/riskassessment/{patientId}");
             await response.EnsureSuccessOrThrowAsync();
 
             var riskAssessment = await response.Content.ReadFromJsonAsync<DiabetesRiskAssessmentDto>(jsonOptions);
-            return riskAssessment ?? throw new InvalidOperationException("L'évaluation du risque a échoué.");
+            return riskAssessment;
         }
     }
 }

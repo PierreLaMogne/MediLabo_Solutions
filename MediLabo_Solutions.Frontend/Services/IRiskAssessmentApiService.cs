@@ -4,6 +4,6 @@ namespace MediLabo_Solutions.Frontend.Services
 {
     public interface IRiskAssessmentApiService
     {
-        Task<DiabetesRiskAssessmentDto> GetRiskAssessmentAsync(int patientId);
+        Task<DiabetesRiskAssessmentDto?> GetRiskAssessmentAsync(int patientId);
     }
 }
