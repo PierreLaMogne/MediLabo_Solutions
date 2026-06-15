@@ -1,10 +1,13 @@
 <Solution>
+  <Folder Name="/Éléments de solution/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Project Path="MediLabo_Solutions.APIGateway/MediLabo_Solutions.APIGateway.csproj" Id="f121c408-e5aa-401f-998a-11fbcfddcbe9" />
   <Project Path="MediLabo_Solutions.AuthService/MediLabo_Solutions.AuthService.csproj" />
   <Project Path="MediLabo_Solutions.ExceptionHandler/MediLabo_Solutions.ExceptionHandler.csproj" Id="b7753106-9d1d-4d38-84e9-37c21323fade" />
   <Project Path="MediLabo_Solutions.Frontend/MediLabo_Solutions.Frontend.csproj" Id="7ee2d3dd-9e0e-4d2f-ae9d-57cb1bdc00f1" />
   <Project Path="MediLabo_Solutions.NoteService/MediLabo_Solutions.NoteService.csproj" Id="9ceac681-e9db-42c6-96e8-88c9ed947d49" />
   <Project Path="MediLabo_Solutions.PatientService/MediLabo_Solutions.PatientService.csproj" />
-  <Project Path="MediLabo_Solutions.RiskAssesmentService/MediLabo_Solutions.RiskAssessmentService.csproj" Id="d43635f5-d014-40b0-a75c-4a1ff85e44ff" />
+  <Project Path="MediLabo_Solutions.RiskAssessmentService/MediLabo_Solutions.RiskAssessmentService.csproj" />
   <Project Path="MediLabo_Solutions.Shared/MediLabo_Solutions.Shared.shproj" Id="90311f39-a15e-42a5-8e0e-7f70e892903e" />
 </Solution>

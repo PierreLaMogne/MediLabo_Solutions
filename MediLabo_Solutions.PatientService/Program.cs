@@ -68,7 +68,12 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<PatientDbContext>();
+    
+    context.Database.EnsureCreated();
     context.Database.Migrate();
+    
+    context.SaveChanges();
+    
     DataSeed.Seed(context);
 }
 
