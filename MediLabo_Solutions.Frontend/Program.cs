@@ -28,30 +28,33 @@ builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
+// Configuration de l'URL de l'API Gateway
+var apiGatewayUrl = builder.Configuration["ApiGatewayUrl"] ?? "https://localhost:7104";
+
 // Configuration de HttpClient pour IAuthApiService (sans autorisation)
 builder.Services.AddHttpClient<IAuthApiService, AuthApiService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7104");
+    client.BaseAddress = new Uri(apiGatewayUrl);
 });
 
 // Configuration de HttpClient pour IPatientApiService (avec autorisation)
 builder.Services.AddHttpClient<IPatientApiService, PatientApiService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7104");
+    client.BaseAddress = new Uri(apiGatewayUrl);
 })
 .AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
 // Configuration de HttpClient pour INoteApiService (avec autorisation)
 builder.Services.AddHttpClient<INoteApiService, NoteApiService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7104");
+    client.BaseAddress = new Uri(apiGatewayUrl);
 })
 .AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
 // Configuration de HttpClient pour IRiskAssessmentApiService (avec autorisation)
 builder.Services.AddHttpClient<IRiskAssessmentApiService, RiskAssessmentApiService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7104");
+    client.BaseAddress = new Uri(apiGatewayUrl);
 })
 .AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
