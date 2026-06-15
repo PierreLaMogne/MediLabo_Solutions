@@ -17,8 +17,8 @@ namespace MediLabo_Solutions.AuthService.Data
             }
 
             // Création de l'utilisateur
-            var adminUsername = configuration["AdminUser:Username"] ?? "MediLabo_admin";
-            var adminPassword = configuration["AdminUser:Password"] ?? "Medilabo2026!";
+            var adminUsername = configuration["AdminCredentials:Username"] ?? "MediLabo_admin";
+            var adminPassword = configuration["AdminCredentials:Password"] ?? "Medilabo2026!";
 
             if (await userManager.FindByNameAsync(adminUsername) == null)
             {
