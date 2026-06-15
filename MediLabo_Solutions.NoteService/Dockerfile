@@ -12,8 +12,16 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Copier les fichiers de projets pour la restauration
 COPY ["MediLabo_Solutions.NoteService/MediLabo_Solutions.NoteService.csproj", "MediLabo_Solutions.NoteService/"]
+COPY ["MediLabo_Solutions.ExceptionHandler/MediLabo_Solutions.ExceptionHandler.csproj", "MediLabo_Solutions.ExceptionHandler/"]
+COPY ["MediLabo_Solutions.Shared/MediLabo_Solutions.Shared.shproj", "MediLabo_Solutions.Shared/"]
+COPY ["MediLabo_Solutions.Shared/MediLabo_Solutions.Shared.projitems", "MediLabo_Solutions.Shared/"]
+
 RUN dotnet restore "./MediLabo_Solutions.NoteService/MediLabo_Solutions.NoteService.csproj"
+
+# Copier tout le code source
 COPY . .
 WORKDIR "/src/MediLabo_Solutions.NoteService"
 RUN dotnet build "./MediLabo_Solutions.NoteService.csproj" -c $BUILD_CONFIGURATION -o /app/build
