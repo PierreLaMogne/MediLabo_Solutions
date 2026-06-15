@@ -37,6 +37,7 @@ namespace MediLabo_Solutions.PatientService.Repositories
             existingPatient.Nom = patient.Nom;
             existingPatient.Prénom = patient.Prénom;
             existingPatient.DateDeNaissance = patient.DateDeNaissance;
+            existingPatient.Genre = patient.Genre;
             existingPatient.AdressePostale = patient.AdressePostale;
             existingPatient.NuméroDeTéléphone = patient.NuméroDeTéléphone;
             await context.SaveChangesAsync();
