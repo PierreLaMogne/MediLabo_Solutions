@@ -1,0 +1,186 @@
+services:
+  # Base de données SQL Server (partagée par AuthService et PatientService)
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: medilabo-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MediLabo2026!Strong
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - medilabo-network
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P MediLabo2026!Strong -Q "SELECT 1" -C || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Base de données MongoDB (pour NoteService)
+  mongodb:
+    image: mongo:7.0
+    container_name: medilabo-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=MediLabo2026!Strong
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - medilabo-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Service d'authentification
+  authservice:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.AuthService/Dockerfile
+    container_name: medilabo-authservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__AuthDb=Server=sqlserver;Database=MediLabo_Solutions.AuthDb;User Id=sa;Password=MediLabo2026!Strong;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
+      - Jwt__Issuer=Medilabo_Solutions_API
+      - Jwt__Audience=Medilabo_Solutions_Clients
+      - Jwt__ExpireMinutes=20
+      - AdminCredentials__Username=Medilabo_admin
+      - AdminCredentials__Password=Medilabo2026!
+    ports:
+      - "5001:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - medilabo-network
+    restart: unless-stopped
+
+  # Service de gestion des patients
+  patientservice:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.PatientService/Dockerfile
+    container_name: medilabo-patientservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MediLabo_Solutions.Patient;User Id=sa;Password=MediLabo2026!Strong;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
+      - Jwt__Issuer=Medilabo_Solutions_API
+      - Jwt__Audience=Medilabo_Solutions_Clients
+      - Jwt__ExpireMinutes=20
+    ports:
+      - "5002:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - medilabo-network
+    restart: unless-stopped
+
+  # Service de gestion des notes
+  noteservice:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.NoteService/Dockerfile
+    container_name: medilabo-noteservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - MongoDbSettings__ConnectionString=mongodb://admin:MediLabo2026!Strong@mongodb:27017
+      - MongoDbSettings__DatabaseName=MediLaboNotes
+      - MongoDbSettings__NotesCollectionName=notes
+      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
+      - Jwt__Issuer=Medilabo_Solutions_API
+      - Jwt__Audience=Medilabo_Solutions_Clients
+      - Jwt__ExpireMinutes=20
+    ports:
+      - "5003:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - medilabo-network
+    restart: unless-stopped
+
+  # Service d'évaluation des risques
+  riskassessmentservice:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.RiskAssessmentService/Dockerfile
+    container_name: medilabo-riskassessmentservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
+      - Jwt__Issuer=Medilabo_Solutions_API
+      - Jwt__Audience=Medilabo_Solutions_Clients
+      - Jwt__ExpireMinutes=20
+      - Services__PatientService__BaseUrl=http://patientservice:8080
+      - Services__NoteService__BaseUrl=http://noteservice:8080
+    ports:
+      - "5004:8080"
+    depends_on:
+      - patientservice
+      - noteservice
+    networks:
+      - medilabo-network
+    restart: unless-stopped
+
+  # API Gateway (Ocelot)
+  apigateway:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.APIGateway/Dockerfile
+    container_name: medilabo-apigateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
+      - Jwt__Issuer=Medilabo_Solutions_API
+      - Jwt__Audience=Medilabo_Solutions_Clients
+      - Jwt__ExpireMinutes=20
+    ports:
+      - "5000:8080"
+    depends_on:
+      - authservice
+      - patientservice
+      - noteservice
+      - riskassessmentservice
+    networks:
+      - medilabo-network
+    restart: unless-stopped
+
+  # Frontend Blazor WebAssembly
+  frontend:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.Frontend/Dockerfile
+    container_name: medilabo-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - apigateway
+    networks:
+      - medilabo-network
+    restart: unless-stopped
+
+networks:
+  medilabo-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+    driver: local
+  mongodb-data:
+    driver: local
