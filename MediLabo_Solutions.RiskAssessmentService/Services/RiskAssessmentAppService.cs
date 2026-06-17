@@ -9,7 +9,7 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         private static readonly HashSet<string> TriggerTerms = new(StringComparer.OrdinalIgnoreCase)
         {
             "Hémoglobine A1C", "Microalbumine", "Taille", "Poids", "Fumeur", "Anormal",
-            "Cholestérol", "Vertiges", "Rechute", "Réaction", "Anticorps"
+            "Cholestérol", "Vertige", "Rechute", "Réaction", "Anticorps"
         };
 
         public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int PatientId)
