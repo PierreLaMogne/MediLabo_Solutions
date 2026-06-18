@@ -1,5 +1,4 @@
-﻿using MediLabo_Solutions.NoteService.Repositories;
-using MediLabo_Solutions.Shared.Models;
+﻿using MediLabo_Solutions.Shared.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
 
@@ -69,7 +68,7 @@ namespace MediLabo_Solutions.NoteService.Services
 
             if (!createIndexResponse.IsValid)
             {
-                throw new Exception($"Erreur de création de l'index: {createIndexResponse.ServerError?.Error?.Reason}");
+                throw new Exception($"Erreur de création de l'index: {createIndexResponse.ServerError?.Error?.Reason ?? createIndexResponse.OriginalException?.Message}");
             }
         }
 
@@ -98,7 +97,6 @@ namespace MediLabo_Solutions.NoteService.Services
                         )
                     )
                     .Size(1000)
-                    .TrackScores(true)
                 );
 
                 if (searchResponse.IsValid && searchResponse.Documents.Any())
@@ -127,7 +125,7 @@ namespace MediLabo_Solutions.NoteService.Services
 
             var bulkIndexResponse = await openSearchClient.BulkAsync(b => b
                 .Index(indexName)
-                .IndexMany(notes)
+                .IndexMany(notes, (descriptor, note) => descriptor.Id(note.Id))
                 .Refresh(Refresh.WaitFor)
             );
             if (!bulkIndexResponse.IsValid)
