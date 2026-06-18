@@ -54,7 +54,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddHttpContextAccessor();
 
 // Enregistrer le handler pour la propagation des tokens JWT
-builder.Services.AddScoped<JwtTokenPropagationHandler>();
+builder.Services.AddTransient<JwtTokenPropagationHandler>();
 
 // Configuration des services et repositories
 builder.Services.AddScoped<IRiskAssessmentAppService, RiskAssessmentAppService>();
