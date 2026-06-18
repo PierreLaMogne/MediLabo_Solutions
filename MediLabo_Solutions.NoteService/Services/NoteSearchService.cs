@@ -1,4 +1,5 @@
-﻿using MediLabo_Solutions.Shared.Models;
+﻿using MediLabo_Solutions.NoteService.Repositories;
+using MediLabo_Solutions.Shared.Models;
 using OpenSearch.Client;
 using OpenSearch.Net;
 
@@ -6,7 +7,6 @@ namespace MediLabo_Solutions.NoteService.Services
 {
     public class NoteSearchService(
         IOpenSearchClient openSearchClient,
-        INoteAppService noteService,
         IConfiguration configuration) : INoteSearchService
     {
         private string indexName = configuration["OpenSearchSettings:IndexName"] ?? "notes";
@@ -22,29 +22,19 @@ namespace MediLabo_Solutions.NoteService.Services
                     .NumberOfReplicas(0)
                     .Analysis(a => a
                         .TokenFilters(tf => tf
-                           .Stemmer("french_stemmer", st => st
-                                .Language("french")
-                           )
+                           .Stemmer("french_stemmer", st => st.Language("french"))
                            .Elision("french_elision", e => e
-                                .Articles("l", "m", "t", "qu", "n", "s", "j", "d", "c", "jusqu", "quoiqu", "lorsqu", "puisqu")
-                           )
-                           .Stop("french_stop", st => st
-                                .StopWords("_french_")
-                           )
+                                .Articles("l", "m", "t", "qu", "n", "s", "j", "d", "c", "jusqu", "quoiqu", "lorsqu", "puisqu"))
+                           .Stop("french_stop", st => st.StopWords("_french_"))
                         )
                         .Analyzers(an => an
                             .Custom("french_medical_analyzer", ca => ca
                                 .Tokenizer("standard")
-                                .Filters(
-                                    "lowercase",
-                                    "french_elision",
-                                    "french_stop",
-                                    "french_stemmer",
-                                    "asciifolding"
-                                )
-                            )
-                            .Custom("keyword_lowercase_analyzer", ca => ca
-                                .Tokenizer("keyword")
+                                .Filters("lowercase", "french_elision", "french_stop","french_stemmer", "asciifolding")
+                            )                            
+                        )
+                        .Normalizers(n => n
+                            .Custom("lowercase_normalizer", cn => cn
                                 .Filters("lowercase", "asciifolding")
                             )
                         )
@@ -65,7 +55,7 @@ namespace MediLabo_Solutions.NoteService.Services
                             .Fields(f => f
                                 .Keyword(k => k
                                     .Name("exact")
-                                    .Normalizer("keyword_lowercase_analyzer")
+                                    .Normalizer("lowercase_normalizer")
                                 )
                                 .Text(txt => txt
                                     .Name("stemmed")
@@ -95,37 +85,14 @@ namespace MediLabo_Solutions.NoteService.Services
                     .Query(q => q
                         .Bool(b => b
                             .Must(m => m
-                                .Term(t => t
-                                    .Field(f => f.PatientId)
-                                    .Value(patientId)
+                                .Term(t => t.Field(f => f.PatientId).Value(patientId)
                                 )
                             )
                             .Should(
-                                sh => sh.Match(ma => ma
-                                        .Field(f => f.Contenu)
-                                        .Query(term)
-                                        .Operator(Operator.And)
-                                        .Boost(3.0)
-                                ),
-                                sh => sh.Match(ma => ma
-                                    .Field("contenu.stemmed")
-                                    .Query(term)
-                                    .Boost(2.0)
-                                ),
-                                sh => sh.Fuzzy(fz => fz
-                                    .Field(f => f.Contenu)
-                                    .Value(term)
-                                    .Fuzziness(Fuzziness.Auto)
-                                    .PrefixLength(2)
-                                    .MaxExpansions(50)
-                                    .Boost(1.5)
-                                ),
-                                sh => sh.Wildcard(w => w
-                                    .Field("contenu.exact")
-                                    .Value($"*{term.ToLower()}*")
-                                    .CaseInsensitive(true)
-                                    .Boost(1.0)
-                                )
+                                sh => sh.Match(ma => ma.Field(f => f.Contenu).Query(term).Operator(Operator.And).Boost(3.0)),
+                                sh => sh.Match(ma => ma.Field("contenu.stemmed").Query(term).Boost(2.0)),
+                                sh => sh.Fuzzy(fz => fz.Field(f => f.Contenu).Value(term).Fuzziness(Fuzziness.Auto).PrefixLength(2).MaxExpansions(50).Boost(1.5)),
+                                sh => sh.Wildcard(w => w.Field("contenu.exact").Value($"*{term.ToLower()}*").CaseInsensitive(true).Boost(1.0))
                             )
                             .MinimumShouldMatch(1)
                         )
@@ -143,37 +110,29 @@ namespace MediLabo_Solutions.NoteService.Services
             return identifiedTriggers;
         }
 
-        public async Task IndexAllNotesAsync()
-        {
-            var allPatientsIds = await noteService.GetAllPatientIdsAsync();
-            var allNotes = new List<NoteDto>();
-
-            foreach (var patientId in allPatientsIds)
-            {
-                var notes = await noteService.GetNotesByPatientIdAsync(patientId);
-                allNotes.AddRange(notes);
-            }
-
-            if (allNotes.Any())
-            {
-                var bulkIndexResponse = await openSearchClient.BulkAsync(b => b
-                    .Index(indexName)
-                    .IndexMany(allNotes)
-                    .Refresh(Refresh.WaitFor)
-                );
-                if (!bulkIndexResponse.IsValid)
-                {
-                    throw new Exception($"Erreur lors de l'indexation en masse: {bulkIndexResponse.ServerError?.Error?.Reason}");
-                }
-            }
-        }
-
         public async Task IndexNoteAsync(NoteDto note)
         {
             var indexResponse = await openSearchClient.IndexDocumentAsync(note);
             if (!indexResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de l'indexation de la note: {indexResponse.ServerError?.Error?.Reason}");
+            }
+        }
+
+        public async Task IndexNotesAsync(IEnumerable<NoteDto> notes)
+        {
+            var notesList = notes.ToList();
+            if (!notesList.Any())
+                return;
+
+            var bulkIndexResponse = await openSearchClient.BulkAsync(b => b
+                .Index(indexName)
+                .IndexMany(notes)
+                .Refresh(Refresh.WaitFor)
+            );
+            if (!bulkIndexResponse.IsValid)
+            {
+                throw new Exception($"Erreur lors de l'indexation en masse: {bulkIndexResponse.ServerError?.Error?.Reason}");
             }
         }
 

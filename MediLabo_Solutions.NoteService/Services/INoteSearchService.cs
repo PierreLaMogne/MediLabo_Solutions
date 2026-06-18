@@ -7,7 +7,7 @@ namespace MediLabo_Solutions.NoteService.Services
         Task CreateIndexAsync();
         Task<HashSet<string>> SearchTriggerTermsAsync(int patientId, IEnumerable<string> triggerTerms);
         Task IndexNoteAsync(NoteDto note);
-        Task IndexAllNotesAsync();
+        Task IndexNotesAsync(IEnumerable<NoteDto> notes);
         Task DeleteNoteFromIndexAsync(string noteId);
         Task DeleteIndexAsync();
     }
