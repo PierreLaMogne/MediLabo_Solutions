@@ -104,9 +104,8 @@ using (var scope = app.Services.CreateScope())
     var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
     await NoteDataSeed.SeedAsync(notesCollection);
 
-    var searchService = services.GetRequiredService<INoteSearchService>();
-    await searchService.CreateIndexAsync();
-    await searchService.IndexAllNotesAsync();
+    var noteAppService = services.GetRequiredService<INoteAppService>();
+    await noteAppService.IndexAllNotesInSearchAsync();
 }
 
 // Middleware de gestion des exceptions
