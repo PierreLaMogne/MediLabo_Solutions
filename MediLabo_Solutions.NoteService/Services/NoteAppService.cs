@@ -5,7 +5,7 @@ using MediLabo_Solutions.Shared.Models;
 
 namespace MediLabo_Solutions.NoteService.Services
 {
-    public class NoteAppService(INoteRepository repo) : INoteAppService
+    public class NoteAppService(INoteRepository repo, INoteSearchService noteSearchService) : INoteAppService
     {
         public async Task<NoteDto> GetNoteByIdAsync(string id)
         {
@@ -25,6 +25,7 @@ namespace MediLabo_Solutions.NoteService.Services
         {
             var note = NoteMapper.ToEntity(dto);
             var createdNote = await repo.AddNoteAsync(note);
+            await noteSearchService.IndexNoteAsync(NoteMapper.ToDto(createdNote));
             return NoteMapper.ToDto(createdNote);
         }
 
@@ -34,14 +35,24 @@ namespace MediLabo_Solutions.NoteService.Services
                 ?? throw new NotFoundException($"La note avec l'identifiant {dto.Id} n'a pas été trouvée.");
             var noteToUpdate = NoteMapper.ToEntity(dto);
             noteToUpdate.Id = dto.Id;
-            return await repo.UpdateNoteAsync(noteToUpdate);
+            var result = await repo.UpdateNoteAsync(noteToUpdate);
+            if (result)
+            {
+                await noteSearchService.IndexNoteAsync(NoteMapper.ToDto(noteToUpdate));
+            }
+            return result;
         }
 
         public async Task<bool> DeleteNoteAsync(string id)
         {
             var existingNote = await repo.GetNoteByIdAsync(id)
                 ?? throw new NotFoundException($"La note avec l'identifiant {id} n'a pas été trouvée.");
-            return await repo.DeleteNoteAsync(id);
+            var result = await repo.DeleteNoteAsync(id);
+            if (result)
+            {
+                await noteSearchService.DeleteNoteFromIndexAsync(id);
+            }
+            return result;
         }
 
         public async Task<IEnumerable<int>> GetAllPatientIdsAsync()
