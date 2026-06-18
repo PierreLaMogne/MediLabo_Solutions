@@ -43,5 +43,10 @@ namespace MediLabo_Solutions.NoteService.Services
                 ?? throw new NotFoundException($"La note avec l'identifiant {id} n'a pas été trouvée.");
             return await repo.DeleteNoteAsync(id);
         }
+
+        public async Task<IEnumerable<int>> GetAllPatientIdsAsync()
+        {
+            return await repo.GetAllPatientIdsAsync();
+        }
     }
 }
