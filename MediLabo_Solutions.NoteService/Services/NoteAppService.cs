@@ -59,5 +59,22 @@ namespace MediLabo_Solutions.NoteService.Services
         {
             return await repo.GetAllPatientIdsAsync();
         }
+
+        public async Task IndexAllNotesInSearchAsync()
+        {
+            var allPatientsIds = await GetAllPatientIdsAsync();
+            var allNotesDtos = new List<NoteDto>();
+
+            foreach (var patientId in allPatientsIds)
+            {
+                var notes = await GetNotesByPatientIdAsync(patientId);
+                allNotesDtos.AddRange(notes);
+            }
+
+            if (allNotesDtos.Any())
+            {
+                await noteSearchService.IndexNotesAsync(allNotesDtos);
+            }
+        }
     }
 }
