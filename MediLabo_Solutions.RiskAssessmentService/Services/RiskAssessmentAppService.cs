@@ -12,33 +12,20 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             "Anormal", "Cholestérol", "Vertiges", "Rechute", "Réaction", "Anticorps"
         };
 
-        public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int PatientId)
+        public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int patientId)
         {
             // Récupérer les informations du patient depuis le service PatientService
-            var patient = await GetPatientAsync(PatientId);
+            var patient = await GetPatientAsync(patientId);
             if (patient == null)
-                throw new NotFoundException($"Patient with ID {PatientId} not found.");
+                throw new NotFoundException($"Patient with ID {patientId} not found.");
 
             // Calculer l'âge du patient
             var age = DateOnly.FromDateTime(DateTime.UtcNow).Year - patient.DateDeNaissance.Year;
             if (DateOnly.FromDateTime(DateTime.UtcNow) < patient.DateDeNaissance.AddYears(age))
                 age--;
 
-            // Récupérer les notes du patient depuis le service NoteService
-            var notes = await GetPatientNotesAsync(PatientId);
-
-            // Collecter les termes déclencheurs dans les notes du patient
-            var identifiedTriggers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var note in notes)
-            {
-                foreach (var term in TriggerTerms)
-                {
-                    if (note.Contenu.Contains(term, StringComparison.OrdinalIgnoreCase))
-                    {
-                        identifiedTriggers.Add(term);
-                    }
-                }
-            }
+            // Rechercher les termes déclencheurs dans les notes du patient via OpenSearch dans le service NoteService
+            var identifiedTriggers = await SearchTriggerTermsAsync(patientId);
 
             // Compter le nombre de termes déclencheurs identifiés
             var triggerTermsCount = identifiedTriggers.Count;
@@ -49,7 +36,7 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             // Créer et retourner le DTO d'évaluation du risque de diabète
             return new DiabetesRiskAssessmentDto
             {
-                PatientId = PatientId,
+                PatientId = patientId,
                 Age = age,
                 Genre = patient.Genre,
                 RiskLevel = riskLevel,
@@ -69,15 +56,18 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             return null;
         }
 
-        private async Task<List<NoteDto>> GetPatientNotesAsync(int patientId)
+        private async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId)
         {
             var client = httpClientFactory.CreateClient("NoteService");
-            var response = await client.GetAsync($"/api/notes?patientId={patientId}");
-            
+            var response = await client.PostAsJsonAsync($"/api/notes/search-triggers?patientId={patientId}", TriggerTerms.ToList());
+
             if (response.IsSuccessStatusCode)
-                return await response.Content.ReadFromJsonAsync<List<NoteDto>>() ?? new List<NoteDto>();
-            
-            return new List<NoteDto>();
+            {
+                return await response.Content.ReadFromJsonAsync<HashSet<string>>()
+                    ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
         private RiskLevel DetermineRiskLevel(int age, string genre, int triggerTermsCount)
