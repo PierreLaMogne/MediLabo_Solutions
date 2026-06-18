@@ -58,11 +58,11 @@ namespace MediLabo_Solutions.NoteService.Controllers
         }
 
         // Endpoint pour rechercher des termes déclencheurs dans les notes d'un patient
-        [HttpGet("search-triggers")]
+        [HttpPost("search-triggers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchTriggerTerms(
             [FromQuery][Range(1, int.MaxValue)] int patientId,
-            [FromQuery][Required] IEnumerable<string> triggerTerms)
+            [FromBody][Required] IEnumerable<string> triggerTerms)
         {
             var identifiedTerms = await searchService.SearchTriggerTermsAsync(patientId, triggerTerms);
             return Ok(identifiedTerms);
