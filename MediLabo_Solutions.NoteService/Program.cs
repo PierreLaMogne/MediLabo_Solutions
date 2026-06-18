@@ -92,15 +92,21 @@ builder.Services.AddProblemDetails();
 // Enregistrement des services et repositories
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteAppService, NoteAppService>();
+builder.Services.AddScoped<INoteSearchService, NoteSearchService>();
 
 var app = builder.Build();
 
-// Seed de données
+// Seed et indexation des données dans OpenSearch
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    
     var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
     await NoteDataSeed.SeedAsync(notesCollection);
+
+    var searchService = services.GetRequiredService<INoteSearchService>();
+    await searchService.CreateIndexAsync();
+    await searchService.IndexAllNotesAsync();
 }
 
 // Middleware de gestion des exceptions
