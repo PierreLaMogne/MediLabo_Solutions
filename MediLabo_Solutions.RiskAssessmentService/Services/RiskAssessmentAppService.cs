@@ -79,11 +79,11 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             // Cas pour les patients de plus de 30 ans
             if (age > 30)
             {
-                if (triggerTermsCount >= 2 && triggerTermsCount <= 5)
+                if (triggerTermsCount >= 2 && triggerTermsCount < 6)
                     return RiskLevel.Borderline;
-                else if (triggerTermsCount >= 6 && triggerTermsCount <= 7)
+                else if (triggerTermsCount >= 6 && triggerTermsCount < 8)
                     return RiskLevel.InDanger;
-                else if (triggerTermsCount > 7)
+                else if (triggerTermsCount >= 8)
                     return RiskLevel.EarlyOnset;
                 else
                     return RiskLevel.None;
@@ -92,9 +92,9 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             // Cas pour les patients masculins ou non-binaires de 30 ans ou moins
             if (genre == "M" || genre == "NB")
             {
-                if (triggerTermsCount >= 3 && triggerTermsCount <= 5)
+                if (triggerTermsCount >= 3 && triggerTermsCount < 5)
                     return RiskLevel.InDanger;
-                else if (triggerTermsCount > 5)
+                else if (triggerTermsCount >= 5)
                     return RiskLevel.EarlyOnset;
                 else
                     return RiskLevel.None;
@@ -103,9 +103,9 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             // Cas pour les patients féminins de 30 ans ou moins
             if (genre == "F")
             {
-                if (triggerTermsCount >= 4 && triggerTermsCount <= 7)
+                if (triggerTermsCount >= 4 && triggerTermsCount < 7)
                     return RiskLevel.InDanger;
-                else if (triggerTermsCount > 7)
+                else if (triggerTermsCount >= 7)
                     return RiskLevel.EarlyOnset;
                 else
                     return RiskLevel.None;
