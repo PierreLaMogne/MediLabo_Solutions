@@ -8,8 +8,8 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         // Termes déclencheurs pour l'évaluation du risque de diabète
         private static readonly HashSet<string> TriggerTerms = new(StringComparer.OrdinalIgnoreCase)
         {
-            "Hémoglobine A1C", "Microalbumine", "Taille", "Poids", "Fumeur", "Anormal",
-            "Cholestérol", "Vertige", "Rechute", "Réaction", "Anticorps"
+            "Hémoglobine A1C", "Microalbumine", "Taille", "Poids", "Fumeur", "Fumeuse",
+            "Anormal", "Cholestérol", "Vertiges", "Rechute", "Réaction", "Anticorps"
         };
 
         public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int PatientId)
