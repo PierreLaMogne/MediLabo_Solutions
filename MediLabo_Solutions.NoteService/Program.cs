@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
+using OpenSearch.Client;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,15 @@ builder.Services.AddScoped<IMongoCollection<Note>>(serviceProvider =>
     var database = serviceProvider.GetRequiredService<IMongoDatabase>();
     var settings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
     return database.GetCollection<Note>(settings!.NotesCollectionName);
+});
+
+// Configuration d'OpenSearch
+builder.Services.AddSingleton<IOpenSearchClient>(serviceProvider =>
+{
+    var settings = builder.Configuration.GetSection("OpenSearchSettings").Get<OpenSearchSettings>();
+    var connectionSettings = new ConnectionSettings(new Uri(settings!.Uri))
+        .DefaultIndex(settings.IndexName);
+    return new OpenSearchClient(connectionSettings);
 });
 
 // Configuration de l'authentification JWT
@@ -82,15 +92,23 @@ builder.Services.AddProblemDetails();
 // Enregistrement des services et repositories
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteAppService, NoteAppService>();
+builder.Services.AddScoped<INoteSearchService, NoteSearchService>();
 
 var app = builder.Build();
 
-// Seed de données
+// SeedData de la mongoDB, création de l'index et indexation des notes dans OpenSearch
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    
     var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
     await NoteDataSeed.SeedAsync(notesCollection);
+
+    var noteSearchService = services.GetRequiredService<INoteSearchService>();
+    await noteSearchService.CreateIndexAsync();
+
+    var noteAppService = services.GetRequiredService<INoteAppService>();
+    await noteAppService.IndexAllNotesInSearchAsync();
 }
 
 // Middleware de gestion des exceptions

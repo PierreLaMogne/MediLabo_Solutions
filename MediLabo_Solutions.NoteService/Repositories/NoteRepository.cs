@@ -39,5 +39,10 @@ namespace MediLabo_Solutions.NoteService.Repositories
             var result = await notes.DeleteOneAsync(n => n.Id == id);
             return result.IsAcknowledged && result.DeletedCount > 0;
         }
+
+        public async Task<IEnumerable<int>> GetAllPatientIdsAsync()
+        {
+            return await notes.Distinct<int>("PatientId", FilterDefinition<Note>.Empty).ToListAsync();
+        }
     }
 }
