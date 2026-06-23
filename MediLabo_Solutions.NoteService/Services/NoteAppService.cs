@@ -18,7 +18,7 @@ namespace MediLabo_Solutions.NoteService.Services
         public async Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId)
         {
             var notes = await repo.GetNotesByPatientIdAsync(patientId);
-            return notes.Select(n => NoteMapper.ToDto(n)).ToList();
+            return notes.Select(n => NoteMapper.ToListDto(n)).ToList();
         }
 
         public async Task<NoteDto> AddNoteAsync(NoteDto dto)
