@@ -17,9 +17,9 @@ namespace MediLabo_Solutions.PatientService.Controllers
     {
         [HttpGet]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllPatients()
+        public async Task<IActionResult> GetAllPatients([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var patients = await service.GetAllPatientsAsync();
+            var patients = await service.GetAllPatientsAsync(pageNumber, pageSize);
             return Ok(patients);
         }
 
@@ -33,9 +33,9 @@ namespace MediLabo_Solutions.PatientService.Controllers
 
         [HttpGet("name/{nom}")]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetPatientByName([FromRoute][Required] string nom)
+        public async Task<IActionResult> GetPatientByName([FromRoute][Required] string nom, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var patients = await service.GetPatientsByNameAsync(nom);
+            var patients = await service.GetPatientsByNameAsync(nom, pageNumber, pageSize);
             return Ok(patients);
         }
 
