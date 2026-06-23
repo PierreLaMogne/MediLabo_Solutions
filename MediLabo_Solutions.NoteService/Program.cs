@@ -100,15 +100,18 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    
-    var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
-    await NoteDataSeed.SeedAsync(notesCollection);
 
     var noteSearchService = services.GetRequiredService<INoteSearchService>();
     await noteSearchService.CreateIndexAsync();
 
-    var noteAppService = services.GetRequiredService<INoteAppService>();
-    await noteAppService.IndexAllNotesInSearchAsync();
+    var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
+    await NoteDataSeed.SeedAsync(notesCollection);
+
+    if (await noteSearchService.CountDocumentAsync() == 0)
+    {
+        var noteAppService = services.GetRequiredService<INoteAppService>();
+        await noteAppService.IndexAllNotesInSearchAsync();
+    }
 }
 
 // Middleware de gestion des exceptions
