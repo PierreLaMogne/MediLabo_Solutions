@@ -96,21 +96,25 @@ builder.Services.AddScoped<INoteSearchService, NoteSearchService>();
 
 var app = builder.Build();
 
-// SeedData de la mongoDB, création de l'index et indexation des notes dans OpenSearch
-using (var scope = app.Services.CreateScope())
+// SeedData uniquement en environnement Development
+if (app.Environment.IsDevelopment())
 {
-    var services = scope.ServiceProvider;
-
-    var noteSearchService = services.GetRequiredService<INoteSearchService>();
-    await noteSearchService.CreateIndexAsync();
-
-    var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
-    await NoteDataSeed.SeedAsync(notesCollection);
-
-    if (await noteSearchService.CountDocumentAsync() == 0)
+    using (var scope = app.Services.CreateScope())
     {
-        var noteAppService = services.GetRequiredService<INoteAppService>();
-        await noteAppService.IndexAllNotesInSearchAsync();
+        var services = scope.ServiceProvider;
+
+        var noteSearchService = services.GetRequiredService<INoteSearchService>();
+        await noteSearchService.CreateIndexAsync();
+
+        var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
+        await NoteDataSeed.SeedAsync(notesCollection);
+
+        var documentsCount = await noteSearchService.CountDocumentAsync();
+        if (documentsCount == 0)
+        {
+            var noteAppService = services.GetRequiredService<INoteAppService>();
+            await noteAppService.IndexAllNotesInSearchAsync();
+        }
     }
 }
 

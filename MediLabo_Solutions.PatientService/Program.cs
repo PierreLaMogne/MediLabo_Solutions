@@ -63,18 +63,18 @@ builder.Services.AddScoped<IPatientAppService, PatientAppService>();
 
 var app = builder.Build();
 
-// DataSeed lorsque la DB est vide au lancement
-using (var scope = app.Services.CreateScope())
+// DataSeed uniquement en environnement Development
+if (app.Environment.IsDevelopment())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<PatientDbContext>();
-    
-    context.Database.EnsureCreated();
-    context.Database.Migrate();
-    
-    context.SaveChanges();
-    
-    DataSeed.Seed(context);
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<PatientDbContext>();
+        
+        await context.Database.MigrateAsync();
+        
+        DataSeed.Seed(context);
+    }
 }
 
 // Middleware de gestion des exceptions
