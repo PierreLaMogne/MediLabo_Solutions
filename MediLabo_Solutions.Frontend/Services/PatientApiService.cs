@@ -7,13 +7,13 @@ namespace MediLabo_Solutions.Frontend.Services
 {
     public class PatientApiService(HttpClient httpClient, JsonSerializerOptions jsonOptions) : IPatientApiService
     {
-        public async Task<IEnumerable<PatientDto>> GetAllPatientsAsync()
+        public async Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            var response = await httpClient.GetAsync("api/patients");
+            var response = await httpClient.GetAsync($"api/patients?pageNumber={pageNumber}&pageSize={pageSize}");
             await response.EnsureSuccessOrThrowAsync();
 
-            var patients = await response.Content.ReadFromJsonAsync<IEnumerable<PatientDto>>(jsonOptions);
-            return patients ?? Enumerable.Empty<PatientDto>();
+            var patients = await response.Content.ReadFromJsonAsync<PagedResult<PatientDto>>(jsonOptions);
+            return patients ?? new PagedResult<PatientDto>();
         }
 
         public async Task<PatientDto?> GetPatientByIdAsync(int id)
@@ -29,13 +29,13 @@ namespace MediLabo_Solutions.Frontend.Services
             return await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
         }
 
-        public async Task<IEnumerable<PatientDto>> GetPatientByNameAsync(string name)
+        public async Task<PagedResult<PatientDto>> GetPatientByNameAsync(string name, int pageNumber = 1, int pageSize = 10)
         {
-            var response = await httpClient.GetAsync($"api/patients/name/{Uri.EscapeDataString(name)}");
+            var response = await httpClient.GetAsync($"api/patients/name/{Uri.EscapeDataString(name)}?pageNumber={pageNumber}&pageSize={pageSize}");
             await response.EnsureSuccessOrThrowAsync();
 
-            var patients = await response.Content.ReadFromJsonAsync<IEnumerable<PatientDto>>(jsonOptions);
-            return patients ?? Enumerable.Empty<PatientDto>();
+            var patients = await response.Content.ReadFromJsonAsync<PagedResult<PatientDto>>(jsonOptions);
+            return patients ?? new PagedResult<PatientDto>();
         }
 
         public async Task<PatientDto> CreatePatientAsync(PatientDto patient)

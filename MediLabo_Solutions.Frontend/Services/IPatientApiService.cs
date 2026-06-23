@@ -4,9 +4,9 @@ namespace MediLabo_Solutions.Frontend.Services
 {
     public interface IPatientApiService
     {
-        Task<IEnumerable<PatientDto>> GetAllPatientsAsync();
+        Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10);
         Task<PatientDto?> GetPatientByIdAsync(int id);
-        Task<IEnumerable<PatientDto>> GetPatientByNameAsync(string name);
+        Task<PagedResult<PatientDto>> GetPatientByNameAsync(string name, int pageNumber = 1, int pageSize = 10);
         Task<PatientDto> CreatePatientAsync(PatientDto patient);
         Task<PatientDto?> UpdatePatientAsync(int id, PatientDto patient);
         Task<bool> DeletePatientAsync(int id);

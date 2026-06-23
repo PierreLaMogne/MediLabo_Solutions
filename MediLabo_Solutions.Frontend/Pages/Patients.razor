@@ -15,15 +15,20 @@
 
 @if (isLoading)
 {
-    <p><em>Chargement des patients...</em></p>
+    <div class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement des patients...</span>
+        </div>
+        <p class="mt-2"><em>Chargement des patients...</em></p>
+    </div>
 }
 else if (errorMessage != null)
 {
     <div class="alert alert-danger" role="alert">
-        @errorMessage
+        <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
     </div>
 }
-else if (patients == null || !patients.Any())
+else if (pagedPatients?.Items == null || !pagedPatients.Items.Any())
 {
     <div class="alert alert-info">
         <p>Aucun patient trouvé.</p>
@@ -34,45 +39,114 @@ else if (patients == null || !patients.Any())
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Prénom</th>
-                <th>Nom</th>
-                <th>Date de Naissance</th>
-                <th>Genre</th>
-                <th>Adresse</th>
-                <th>Téléphone</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var patient in patients)
-            {
-                <tr>
-                    <td>@patient.Id</td>
-                    <td>@patient.Prénom</td>
-                    <td>@patient.Nom</td>
-                    <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
-                    <td>@GetGenreLabel(patient.Genre)</td>
-                    <td>@(patient.AdressePostale ?? "-")</td>
-                    <td>@(patient.NuméroDeTéléphone ?? "-")</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => ViewPatient(patient.Id)">Consulter</button>
-                        <button class="btn btn-sm btn-warning" @onclick="() => EditPatient(patient.Id)">Modifier</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePatient(patient.Id)">Supprimer</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people-fill"></i> @pagedPatients.TotalCount patient(s) trouvé(s)</span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-light @(pageSize == 5 ? "active" : "")" @onclick="() => ChangePageSize(5)">5</button>
+                    <button class="btn btn-light @(pageSize == 10 ? "active" : "")" @onclick="() => ChangePageSize(10)">10</button>
+                    <button class="btn btn-light @(pageSize == 25 ? "active" : "")" @onclick="() => ChangePageSize(25)">25</button>
+                    <button class="btn btn-light @(pageSize == 50 ? "active" : "")" @onclick="() => ChangePageSize(50)">50</button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Date de Naissance</th>
+                            <th>Genre</th>
+                            <th>Adresse</th>
+                            <th>Téléphone</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var patient in pagedPatients.Items)
+                        {
+                            <tr>
+                                <td>@patient.Id</td>
+                                <td>@patient.Prénom</td>
+                                <td>@patient.Nom</td>
+                                <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
+                                <td>@GetGenreLabel(patient.Genre)</td>
+                                <td>@(patient.AdressePostale ?? "-")</td>
+                                <td>@(patient.NuméroDeTéléphone ?? "-")</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-primary" @onclick="() => ViewPatient(patient.Id)" title="Consulter">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-warning" @onclick="() => EditPatient(patient.Id)" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-danger" @onclick="() => DeletePatient(patient.Id)" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="card-footer">
+            <nav aria-label="Navigation des pages">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item @(!pagedPatients.HasPreviousPage ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(1)" disabled="@(!pagedPatients.HasPreviousPage)">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </button>
+                    </li>
+                    <li class="page-item @(!pagedPatients.HasPreviousPage ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(currentPage - 1)" disabled="@(!pagedPatients.HasPreviousPage)">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </li>
+                    
+                    @for (int i = GetStartPage(); i <= GetEndPage(); i++)
+                    {
+                        var page = i;
+                        <li class="page-item @(page == currentPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(page)">@page</button>
+                        </li>
+                    }
+                    
+                    <li class="page-item @(!pagedPatients.HasNextPage ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(currentPage + 1)" disabled="@(!pagedPatients.HasNextPage)">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </li>
+                    <li class="page-item @(!pagedPatients.HasNextPage ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(pagedPatients.TotalPages)" disabled="@(!pagedPatients.HasNextPage)">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="text-center mt-2 small text-muted">
+                Page @currentPage sur @pagedPatients.TotalPages
+                (@((currentPage - 1) * pageSize + 1) - @Math.Min(currentPage * pageSize, pagedPatients.TotalCount) sur @pagedPatients.TotalCount)
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    private IEnumerable<PatientDto>? patients;
+    private PagedResult<PatientDto>? pagedPatients;
     private bool isLoading = true;
     private string? errorMessage;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private const int MaxPagesToShow = 5;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,7 +160,7 @@ else
 
         try
         {
-            patients = await PatientApiService.GetAllPatientsAsync();
+            pagedPatients = await PatientApiService.GetAllPatientsAsync(currentPage, pageSize);
         }
         catch (Exception ex)
         {
@@ -96,6 +170,44 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || (pagedPatients != null && page > pagedPatients.TotalPages))
+            return;
+
+        currentPage = page;
+        await LoadPatients();
+    }
+
+    private async Task ChangePageSize(int newPageSize)
+    {
+        pageSize = newPageSize;
+        currentPage = 1;
+        await LoadPatients();
+    }
+
+    private int GetStartPage()
+    {
+        if (pagedPatients == null) return 1;
+        
+        var half = MaxPagesToShow / 2;
+        var start = currentPage - half;
+        
+        if (start < 1) start = 1;
+        if (start + MaxPagesToShow > pagedPatients.TotalPages)
+            start = Math.Max(1, pagedPatients.TotalPages - MaxPagesToShow + 1);
+        
+        return start;
+    }
+
+    private int GetEndPage()
+    {
+        if (pagedPatients == null) return 1;
+        
+        var end = GetStartPage() + MaxPagesToShow - 1;
+        return Math.Min(end, pagedPatients.TotalPages);
     }
 
     private string GetGenreLabel(string genre)
@@ -131,6 +243,11 @@ else
             var success = await PatientApiService.DeletePatientAsync(id);
             if (success)
             {
+                // Si le dernier élément d'une page est supprimé, revenir à la page précédente
+                if (pagedPatients?.Items.Count == 1 && currentPage > 1)
+                {
+                    currentPage--;
+                }
                 await LoadPatients();
             }
             else
