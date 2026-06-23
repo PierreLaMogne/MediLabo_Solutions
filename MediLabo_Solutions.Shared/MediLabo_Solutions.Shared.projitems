@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\DiabetesRiskAssessmentDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\LoginRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\NoteDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\PagedResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\PatientDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ProblemDetailsResponse.cs" />
   </ItemGroup>

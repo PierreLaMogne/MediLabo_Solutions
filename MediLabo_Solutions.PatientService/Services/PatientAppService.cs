@@ -7,12 +7,24 @@ namespace MediLabo_Solutions.PatientService.Services
 {
     public class PatientAppService(IPatientRepository repository) : IPatientAppService
     {
-        public async Task<List<PatientDto>> GetAllPatientsAsync()
+        public async Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            var patients = await repository.GetAllPatientsAsync();
-            return patients.Any()
-                ? patients.Select(p => PatientMapper.ToDto(p)).ToList()
-                : new List<PatientDto>();
+            var allPatients = await repository.GetAllPatientsAsync();
+            var totalCount = allPatients.Count();
+
+            var pagedPatients = allPatients
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => PatientMapper.ToDto(p))
+                .ToList();
+
+            return new PagedResult<PatientDto>
+            {
+                Items = pagedPatients,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<PatientDto?> GetPatientByIdAsync(int id)
@@ -23,12 +35,24 @@ namespace MediLabo_Solutions.PatientService.Services
                 : throw new NotFoundException($@"Le patient avec l'identifiant {id} n'a pas été trouvé.");
         }
 
-        public async Task<List<PatientDto>> GetPatientsByNameAsync(string Name)
+        public async Task<PagedResult<PatientDto>> GetPatientsByNameAsync(string Name, int pageNumber = 1, int pageSize = 10)
         {
             var patients = await repository.GetPatientsByNameAsync(Name);
-            return patients.Any()
-                ? patients.Select(p => PatientMapper.ToDto(p)).ToList()
-                : new List<PatientDto>();
+            var totalCount = patients.Count();
+
+            var pagedPatients = patients
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => PatientMapper.ToDto(p))
+                .ToList();
+
+            return new PagedResult<PatientDto>
+            {
+                Items = pagedPatients,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<PatientDto> AddPatientAsync(PatientDto dto)
