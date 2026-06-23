@@ -15,7 +15,7 @@ namespace MediLabo_Solutions.PatientService.Services
             var pagedPatients = allPatients
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(p => PatientMapper.ToDto(p))
+                .Select(p => PatientMapper.ToListDto(p))
                 .ToList();
 
             return new PagedResult<PatientDto>
@@ -43,7 +43,7 @@ namespace MediLabo_Solutions.PatientService.Services
             var pagedPatients = patients
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(p => PatientMapper.ToDto(p))
+                .Select(p => PatientMapper.ToListDto(p))
                 .ToList();
 
             return new PagedResult<PatientDto>
