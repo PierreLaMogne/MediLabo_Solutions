@@ -13,8 +13,9 @@ namespace MediLabo_Solutions.NoteService.Services
         {
             var indexExists = await openSearchClient.Indices.ExistsAsync(indexName);
             if (indexExists.Exists)
-                await openSearchClient.Indices.DeleteAsync(indexName);
+                return;
 
+            // Créer l'index uniquement s'il n'existe pas
             var createIndexResponse = await openSearchClient.Indices.CreateAsync(indexName, c => c
                 .Settings(s => s
                     .NumberOfShards(1)
@@ -150,6 +151,17 @@ namespace MediLabo_Solutions.NoteService.Services
             {
                 await openSearchClient.Indices.DeleteAsync(indexName);
             }
+        }
+
+        public async Task<long> CountDocumentAsync()
+        {
+            var countResponse = await openSearchClient.CountAsync<NoteDto>(c => c.Index(indexName));
+            if (!countResponse.IsValid)
+            {
+                throw new Exception($"Erreur lors du comptage des documents: {countResponse.ServerError?.Error?.Reason}");
+            }
+            Console.WriteLine($"Nombre de documents dans l'index '{indexName}': {countResponse.Count}");
+            return countResponse.Count;
         }
     }
 }
