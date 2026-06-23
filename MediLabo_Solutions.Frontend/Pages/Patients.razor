@@ -116,7 +116,7 @@ else
                     {
                         var page = i;
                         <li class="page-item @(page == currentPage ? "active" : "")">
-                            <button class="page-link" @onclick="() => GoToPage(page)">@page</button>
+                            <button class="page-link" @onclick="() => GoToPage(page)">@(pagedPatients.PageNumber)</button>
                         </li>
                     }
                     
