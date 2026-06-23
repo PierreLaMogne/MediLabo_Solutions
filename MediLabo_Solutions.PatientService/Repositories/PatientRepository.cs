@@ -8,18 +8,19 @@ namespace MediLabo_Solutions.PatientService.Repositories
     {
         public async Task<IEnumerable<Patient>> GetAllPatientsAsync()
         {
-            return await context.Patients.ToListAsync();
+            return await context.Patients.AsNoTracking().ToListAsync();
         }
 
         public async Task<Patient?> GetPatientByIdAsync(int id)
         {
-            return await context.Patients.FindAsync(id);
+            return await context.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<Patient>> GetPatientsByNameAsync(string nom)
         {
             return await context.Patients
                 .Where(p => EF.Functions.Like(p.Nom, $"%{nom}%"))
+                .AsNoTracking()
                 .ToListAsync();
         }
 
