@@ -15,7 +15,7 @@
                 <div class="col-md-4">
                     <label for="searchType" class="form-label">Type de recherche</label>
                     <select id="searchType" class="form-select" @bind="searchType">
-                        <option value="name">Par Nom/Prénom</option>
+                        <option value="name">Par Nom</option>
                         <option value="id">Par Identifiant</option>
                     </select>
                 </div>
@@ -23,14 +23,14 @@
                 @if (searchType == "name")
                 {
                     <div class="col-md-6">
-                        <label for="searchName" class="form-label">Nom ou Prénom</label>
+                        <label for="searchName" class="form-label">Nom</label>
                         <input type="text" 
                                id="searchName" 
                                class="form-control" 
                                @bind="searchName" 
                                @bind:event="oninput"
                                @onkeypress="HandleKeyPress"
-                               placeholder="Entrez le nom ou le prénom..." />
+                               placeholder="Entrez le nom..." />
                     </div>
                 }
                 else
