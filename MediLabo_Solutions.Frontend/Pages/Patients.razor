@@ -42,7 +42,7 @@ else
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-people-fill"></i> @pagedPatients.TotalCount patient(s) trouvé(s)</span>
+                <span><i class="bi bi-people-fill"></i> @pagedPatients.TotalCount patients trouvés</span>
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-light @(pageSize == 5 ? "active" : "")" @onclick="() => ChangePageSize(5)">5</button>
                     <button class="btn btn-light @(pageSize == 10 ? "active" : "")" @onclick="() => ChangePageSize(10)">10</button>
@@ -60,10 +60,7 @@ else
                             <th>Prénom</th>
                             <th>Nom</th>
                             <th>Date de Naissance</th>
-                            <th>Genre</th>
-                            <th>Adresse</th>
-                            <th>Téléphone</th>
-                            <th class="text-end">Actions</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,19 +71,16 @@ else
                                 <td>@patient.Prénom</td>
                                 <td>@patient.Nom</td>
                                 <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
-                                <td>@GetGenreLabel(patient.Genre)</td>
-                                <td>@(patient.AdressePostale ?? "-")</td>
-                                <td>@(patient.NuméroDeTéléphone ?? "-")</td>
-                                <td class="text-end">
-                                    <div class="btn-group btn-group-sm">
+                                <td>
+                                    <div class="btn-group">
                                         <button class="btn btn-primary" @onclick="() => ViewPatient(patient.Id)" title="Consulter">
-                                            <i class="bi bi-eye"></i>
+                                            <i class="bi bi-eye"></i> Consulter
                                         </button>
                                         <button class="btn btn-warning" @onclick="() => EditPatient(patient.Id)" title="Modifier">
-                                            <i class="bi bi-pencil"></i>
+                                            <i class="bi bi-pencil"></i> Modifier
                                         </button>
                                         <button class="btn btn-danger" @onclick="() => DeletePatient(patient.Id)" title="Supprimer">
-                                            <i class="bi bi-trash"></i>
+                                            <i class="bi bi-trash"></i> Supprimer
                                         </button>
                                     </div>
                                 </td>
@@ -208,17 +202,6 @@ else
         
         var end = GetStartPage() + MaxPagesToShow - 1;
         return Math.Min(end, pagedPatients.TotalPages);
-    }
-
-    private string GetGenreLabel(string genre)
-    {
-        return genre switch
-        {
-            "M" => "Masculin",
-            "F" => "Féminin",
-            "NB" => "Non-binaire",
-            _ => genre
-        };
     }
 
     private void CreatePatient()

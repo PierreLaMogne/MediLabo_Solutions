@@ -132,10 +132,7 @@
                                     <th>Prénom</th>
                                     <th>Nom</th>
                                     <th>Date de Naissance</th>
-                                    <th>Âge</th>
-                                    <th>Genre</th>
-                                    <th>Téléphone</th>
-                                    <th class="text-end">Actions</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,12 +143,7 @@
                                         <td>@patient.Prénom</td>
                                         <td>@patient.Nom</td>
                                         <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
-                                        <td>@CalculateAge(patient.DateDeNaissance) ans</td>
                                         <td>
-                                            <span class="badge bg-secondary">@GetGenreLabel(patient.Genre)</span>
-                                        </td>
-                                        <td>@(patient.NuméroDeTéléphone ?? "-")</td>
-                                        <td class="text-end">
                                             <button class="btn btn-sm btn-primary" 
                                                     @onclick="() => ViewPatient(patient.Id)"
                                                     title="Consulter">
