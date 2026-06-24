@@ -1,11 +1,13 @@
-using MediLabo_Solutions.PatientService.Data;
 using MediLabo_Solutions.ExceptionHandler.Extensions;
+using MediLabo_Solutions.PatientService.Data;
 using MediLabo_Solutions.PatientService.Repositories;
 using MediLabo_Solutions.PatientService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IO.Compression;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +33,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 });
 
 builder.Services.AddAuthorization();
+
+// Ajouter la compression de réponse
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
 
 // Configuration des controllers avec gestion automatique des validations
 builder.Services.AddControllers()
@@ -62,6 +82,8 @@ builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientAppService, PatientAppService>();
 
 var app = builder.Build();
+
+app.UseResponseCompression();
 
 // DataSeed uniquement en environnement Development
 if (app.Environment.IsDevelopment())

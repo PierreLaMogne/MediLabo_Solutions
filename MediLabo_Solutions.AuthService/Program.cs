@@ -2,7 +2,9 @@ using MediLabo_Solutions.AuthService.Data;
 using MediLabo_Solutions.AuthService.Services;
 using MediLabo_Solutions.ExceptionHandler.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration de la base de données
@@ -29,6 +31,24 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AuthDbContext>()
 .AddDefaultTokenProviders();
 
+// Ajouter la compression de réponse
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
 // Enregistrement du service d'authentification
 builder.Services.AddScoped<IAuthAppService, AuthAppService>();
 
@@ -39,6 +59,8 @@ builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+app.UseResponseCompression();
 
 // Initialisation de la base de données et création de l'utilisateur admin
 using (var scope = app.Services.CreateScope())
