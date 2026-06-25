@@ -5,37 +5,58 @@ using System.Text.Json;
 
 namespace MediLabo_Solutions.Frontend.Services
 {
-    public class PatientApiService(HttpClient httpClient, JsonSerializerOptions jsonOptions) : IPatientApiService
+    public class PatientApiService(
+        HttpClient httpClient, 
+        JsonSerializerOptions jsonOptions,
+        IHttpCacheService cacheService) : IPatientApiService
     {
+        private const string CacheKeyPrefix = "patient:";
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+
         public async Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            var response = await httpClient.GetAsync($"api/patients?pageNumber={pageNumber}&pageSize={pageSize}");
-            await response.EnsureSuccessOrThrowAsync();
+            var cacheKey = $"{CacheKeyPrefix}all:page{pageNumber}:size{pageSize}";
+            
+            return await cacheService.GetOrCreateAsync(cacheKey, async () =>
+            {
+                var response = await httpClient.GetAsync($"api/patients?pageNumber={pageNumber}&pageSize={pageSize}");
+                await response.EnsureSuccessOrThrowAsync();
 
-            var patients = await response.Content.ReadFromJsonAsync<PagedResult<PatientDto>>(jsonOptions);
-            return patients ?? new PagedResult<PatientDto>();
+                var patients = await response.Content.ReadFromJsonAsync<PagedResult<PatientDto>>(jsonOptions);
+                return patients ?? new PagedResult<PatientDto>();
+            }, CacheDuration) ?? new PagedResult<PatientDto>();
         }
 
         public async Task<PatientDto?> GetPatientByIdAsync(int id)
         {
-            var response = await httpClient.GetAsync($"api/patients/{id}");
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            var cacheKey = $"{CacheKeyPrefix}id:{id}";
+            
+            return await cacheService.GetOrCreateAsync(cacheKey, async () =>
             {
-                return null;
-            }
+                var response = await httpClient.GetAsync($"api/patients/{id}");
 
-            await response.EnsureSuccessOrThrowAsync();
-            return await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+
+                await response.EnsureSuccessOrThrowAsync();
+                return await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
+            }, CacheDuration);
         }
 
         public async Task<PagedResult<PatientDto>> GetPatientByNameAsync(string name, int pageNumber = 1, int pageSize = 10)
         {
-            var response = await httpClient.GetAsync($"api/patients/name/{Uri.EscapeDataString(name)}?pageNumber={pageNumber}&pageSize={pageSize}");
-            await response.EnsureSuccessOrThrowAsync();
+            var cacheKey = $"{CacheKeyPrefix}name:{name}:page{pageNumber}:size{pageSize}";
+            
+            return await cacheService.GetOrCreateAsync(cacheKey, async () =>
+            {
+                var response = await httpClient.GetAsync($"api/patients/name/{Uri.EscapeDataString(name)}?pageNumber={pageNumber}&pageSize={pageSize}");
+                await response.EnsureSuccessOrThrowAsync();
 
-            var patients = await response.Content.ReadFromJsonAsync<PagedResult<PatientDto>>(jsonOptions);
-            return patients ?? new PagedResult<PatientDto>();
+                var patients = await response.Content.ReadFromJsonAsync<PagedResult<PatientDto>>(jsonOptions);
+                return patients ?? new PagedResult<PatientDto>();
+            }, CacheDuration) ?? new PagedResult<PatientDto>();
         }
 
         public async Task<PatientDto> CreatePatientAsync(PatientDto patient)
@@ -44,6 +65,10 @@ namespace MediLabo_Solutions.Frontend.Services
             await response.EnsureSuccessOrThrowAsync();
 
             var createdPatient = await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
+            
+            // Invalider le cache après création
+            cacheService.RemoveByPrefix(CacheKeyPrefix);
+            
             return createdPatient ?? throw new InvalidOperationException("La création du patient a échoué.");
         }
 
@@ -58,7 +83,12 @@ namespace MediLabo_Solutions.Frontend.Services
             }
 
             await response.EnsureSuccessOrThrowAsync();
-            return await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
+            var updatedPatient = await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
+            
+            // Invalider le cache après mise à jour
+            cacheService.RemoveByPrefix(CacheKeyPrefix);
+            
+            return updatedPatient;
         }
 
         public async Task<bool> DeletePatientAsync(int id)
@@ -67,11 +97,13 @@ namespace MediLabo_Solutions.Frontend.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                // Log l'erreur sans lancer d'exception
                 await response.LogErrorDetailsAsync();
                 return false;
             }
 
+            // Invalider le cache après suppression
+            cacheService.RemoveByPrefix(CacheKeyPrefix);
+            
             return true;
         }
     }
