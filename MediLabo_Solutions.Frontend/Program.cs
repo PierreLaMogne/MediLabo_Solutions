@@ -21,6 +21,10 @@ builder.Services.AddSingleton(new JsonSerializerOptions
 // Ajout de Blazored.LocalStorage
 builder.Services.AddBlazoredLocalStorage();
 
+// Ajout du cache en mémoire
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<IHttpCacheService, HttpCacheService>();
+
 // Enregistrement du AuthorizationMessageHandler
 builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
 
