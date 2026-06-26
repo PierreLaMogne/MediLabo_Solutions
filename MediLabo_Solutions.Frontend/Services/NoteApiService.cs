@@ -53,10 +53,7 @@ public class NoteApiService(
         var createdNote = await response.Content.ReadFromJsonAsync<NoteDto>(jsonOptions);
         
         // Invalider le cache pour ce patient
-        if (note.PatientId.HasValue)
-        {
-            cacheService.Remove($"{CacheKeyPrefix}patient:{note.PatientId.Value}");
-        }
+        cacheService.Remove($"{CacheKeyPrefix}patient:{note.PatientId}");
         
         return createdNote ?? throw new InvalidOperationException("La réponse du serveur est nulle.");
     }
@@ -75,10 +72,7 @@ public class NoteApiService(
         
         // Invalider le cache
         cacheService.Remove($"{CacheKeyPrefix}id:{id}");
-        if (note.PatientId.HasValue)
-        {
-            cacheService.Remove($"{CacheKeyPrefix}patient:{note.PatientId.Value}");
-        }
+        cacheService.Remove($"{CacheKeyPrefix}patient:{note.PatientId}");
         
         return true;
     }
@@ -99,9 +93,9 @@ public class NoteApiService(
         
         // Invalider le cache
         cacheService.Remove($"{CacheKeyPrefix}id:{id}");
-        if (existingNote?.PatientId != null)
+        if (existingNote != null)
         {
-            cacheService.Remove($"{CacheKeyPrefix}patient:{existingNote.PatientId.Value}");
+            cacheService.Remove($"{CacheKeyPrefix}patient:{existingNote.PatientId}");
         }
         
         return true;
