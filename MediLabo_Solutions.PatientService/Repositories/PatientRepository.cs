@@ -1,5 +1,6 @@
 ﻿using MediLabo_Solutions.PatientService.Data;
 using MediLabo_Solutions.PatientService.Domain;
+using MediLabo_Solutions.PatientService.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 namespace MediLabo_Solutions.PatientService.Repositories
@@ -9,31 +10,34 @@ namespace MediLabo_Solutions.PatientService.Repositories
         public async Task<(IEnumerable<Patient> Patients, int TotalCount)> GetAllPatientsPaginatedAsync(int pageNumber, int pageSize)
         {
             var query = context.Patients.AsNoTracking();
-            var totalCount = await query.CountAsync();
-            
-            var patients = await query
+            var totalCount = query.CountAsync();
+
+            var patients = query
                 .OrderBy(p => p.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-                
-            return (patients, totalCount);
+            
+            await Task.WhenAll(patients, totalCount);
+            return (await patients, await totalCount);
         }
 
         public async Task<(IEnumerable<Patient> Patients, int TotalCount)> GetPatientsByNamePaginatedAsync(string nom, int pageNumber, int pageSize)
         {
-            var query = context.Patients
+            var filteredQuery = context.Patients
                 .Where(p => EF.Functions.Like(p.Nom, $"%{nom}%"))
                 .AsNoTracking();
-                
-            var totalCount = await query.CountAsync();
-            
-            var patients = await query
+
+            var totalCount = await filteredQuery.CountAsync();
+            if (totalCount == 0)
+                return (Enumerable.Empty<Patient>(), 0);
+
+            var patients = await filteredQuery
                 .OrderBy(p => p.Nom)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-                
+
             return (patients, totalCount);
         }
 
