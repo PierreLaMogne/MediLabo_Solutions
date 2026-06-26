@@ -67,11 +67,7 @@ namespace MediLabo_Solutions.PatientService.Repositories
 
         public async Task<bool> DeletePatientAsync(int id)
         {
-            // ✅ OPTIMISATION: Delete sans charger toutes les propriétés
-            var patient = await context.Patients
-                .Where(p => p.Id == id)
-                .Select(p => new Patient { Id = p.Id })
-                .FirstOrDefaultAsync();
+            var patient = await context.Patients.FindAsync(id);
                 
             if (patient == null) return false;
             
