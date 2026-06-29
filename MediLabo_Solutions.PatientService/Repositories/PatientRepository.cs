@@ -2,27 +2,39 @@
 using MediLabo_Solutions.PatientService.Domain;
 using MediLabo_Solutions.PatientService.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MediLabo_Solutions.PatientService.Repositories
 {
-    public class PatientRepository(PatientDbContext context) : IPatientRepository
+    public class PatientRepository(PatientDbContext context, IMemoryCache cache) : IPatientRepository
     {
-        public async Task<(IEnumerable<Patient> Patients, int TotalCount)> GetAllPatientsPaginatedAsync(int pageNumber, int pageSize)
+        private const string CacheKey = "TotalPatientCount";
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+        private static readonly SemaphoreSlim _cacheLock = new(1, 1);
+
+        public async Task<(IEnumerable<Patient>, int)> GetAllPatientsPaginatedAsync(int pageNumber, int pageSize)
         {
             var query = context.Patients.AsNoTracking();
-            var totalCount = query.CountAsync();
 
-            var patients = query
+            var totalCount = await cache.GetOrCreateAsync(CacheKey, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = CacheDuration;
+                entry.SlidingExpiration = TimeSpan.FromMinutes(2);
+
+                return await query.CountAsync();
+            });
+
+            var patients = await query
                 .OrderBy(p => p.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-            
-            await Task.WhenAll(patients, totalCount);
-            return (await patients, await totalCount);
+
+            return (patients, totalCount);
         }
 
-        public async Task<(IEnumerable<Patient> Patients, int TotalCount)> GetPatientsByNamePaginatedAsync(string nom, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Patient>, int)> GetPatientsByNamePaginatedAsync(string nom, int pageNumber, int pageSize)
         {
             var filteredQuery = context.Patients
                 .Where(p => EF.Functions.Like(p.Nom, $"%{nom}%"))
@@ -50,6 +62,10 @@ namespace MediLabo_Solutions.PatientService.Repositories
         {
             context.Patients.Add(patient);
             await context.SaveChangesAsync();
+
+            // Invalide le cache après l'ajout d'un nouveau patient
+            cache.Remove(CacheKey);
+
             return patient;
         }
 
@@ -57,26 +73,33 @@ namespace MediLabo_Solutions.PatientService.Repositories
         {
             var existingPatient = await context.Patients.FindAsync(patient.Id);
             if (existingPatient == null) return null;
-            
+
             existingPatient.Nom = patient.Nom;
             existingPatient.Prénom = patient.Prénom;
             existingPatient.DateDeNaissance = patient.DateDeNaissance;
             existingPatient.Genre = patient.Genre;
             existingPatient.AdressePostale = patient.AdressePostale;
             existingPatient.NuméroDeTéléphone = patient.NuméroDeTéléphone;
-            
+
             await context.SaveChangesAsync();
+
+            // Pas d'invalidation du cache car le total de patients reste le même après une mise à jour
+
             return existingPatient;
         }
 
         public async Task<bool> DeletePatientAsync(int id)
         {
             var patient = await context.Patients.FindAsync(id);
-                
+
             if (patient == null) return false;
-            
+
             context.Patients.Remove(patient);
             await context.SaveChangesAsync();
+
+            // Invalide le cache après la suppression d'un patient
+            cache.Remove(CacheKey);
+
             return true;
         }
     }

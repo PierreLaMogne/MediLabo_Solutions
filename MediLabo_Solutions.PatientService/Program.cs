@@ -77,6 +77,8 @@ builder.Services.AddControllers()
 
 builder.Services.AddProblemDetails();
 
+builder.Services.AddMemoryCache();
+
 // Configuration des services et repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientAppService, PatientAppService>();
