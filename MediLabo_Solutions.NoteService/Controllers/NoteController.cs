@@ -50,11 +50,12 @@ namespace MediLabo_Solutions.NoteService.Controllers
         }
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteNote([FromRoute][Required] string id)
         {
-            await appService.DeleteNoteAsync(id);
-            return NoContent();
+            var patientId = await appService.DeleteNoteAsync(id);
+            if (patientId == null)
+                return NotFound();
+            return Ok(new { PatientId = patientId });
         }
 
         // Endpoint pour rechercher des termes déclencheurs dans les notes d'un patient

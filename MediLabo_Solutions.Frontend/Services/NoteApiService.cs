@@ -79,25 +79,24 @@ public class NoteApiService(
 
     public async Task<bool> DeleteNoteAsync(string id)
     {
-        // Récupérer la note pour connaître le patientId avant de la supprimer
-        var existingNote = await GetNoteByIdAsync(id);
-        
         var response = await httpClient.DeleteAsync($"api/notes/{id}");
-
+        
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return false;
         }
 
         await response.EnsureSuccessOrThrowAsync();
+
+        // Récupération du PatientId depuis la réponse pour une invalidation ciblée du cache
+        var result = await response.Content.ReadFromJsonAsync<DeleteNoteResponse>(jsonOptions);  
         
-        // Invalider le cache
+        cacheService.Remove($"{CacheKeyPrefix}patient:{result!.PatientId}");
         cacheService.Remove($"{CacheKeyPrefix}id:{id}");
-        if (existingNote != null)
-        {
-            cacheService.Remove($"{CacheKeyPrefix}patient:{existingNote.PatientId}");
-        }
-        
+
         return true;
     }
+
+    // DTO pour désérialiser la réponse de suppression de note
+    private record DeleteNoteResponse(int PatientId);
 }

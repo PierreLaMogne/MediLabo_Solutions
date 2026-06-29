@@ -43,16 +43,15 @@ namespace MediLabo_Solutions.NoteService.Services
             return result;
         }
 
-        public async Task<bool> DeleteNoteAsync(string id)
+        public async Task<int?> DeleteNoteAsync(string id)
         {
-            var existingNote = await repo.GetNoteByIdAsync(id)
-                ?? throw new NotFoundException($"La note avec l'identifiant {id} n'a pas été trouvée.");
-            var result = await repo.DeleteNoteAsync(id);
-            if (result)
-            {
-                await noteSearchService.DeleteNoteFromIndexAsync(id);
-            }
-            return result;
+            var deletedNote = await repo.DeleteAndReturnAsync(id);
+            
+            if (deletedNote == null)
+                return null;
+            
+            await noteSearchService.DeleteNoteFromIndexAsync(id);
+            return deletedNote.PatientId;
         }
 
         public async Task<IEnumerable<int>> GetAllPatientIdsAsync()

@@ -44,5 +44,10 @@ namespace MediLabo_Solutions.NoteService.Repositories
         {
             return await notes.Distinct<int>("PatientId", FilterDefinition<Note>.Empty).ToListAsync();
         }
+
+        public async Task<Note?> DeleteAndReturnAsync(string id)
+        {
+            return await notes.FindOneAndDeleteAsync(n => n.Id == id);
+        }
     }
 }

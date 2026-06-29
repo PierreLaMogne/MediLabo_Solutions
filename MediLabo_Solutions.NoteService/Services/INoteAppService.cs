@@ -8,7 +8,7 @@ namespace MediLabo_Solutions.NoteService.Services
         Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId);
         Task<NoteDto> AddNoteAsync(NoteDto dto);
         Task<bool> UpdateNoteAsync(NoteDto dto);
-        Task<bool> DeleteNoteAsync(string id);
+        Task<int?> DeleteNoteAsync(string id);
         Task<IEnumerable<int>> GetAllPatientIdsAsync();
         Task IndexAllNotesInSearchAsync();
     }
