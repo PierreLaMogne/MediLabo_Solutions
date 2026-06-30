@@ -9,6 +9,11 @@ namespace MediLabo_Solutions.NoteService.Repositories
 {
     public class NoteRepository(IMongoCollection<Note> notes) : INoteRepository
     {
+        public async Task<IEnumerable<Note>> GetAllNotesAsync()
+        {
+            return await notes.Find(FilterDefinition<Note>.Empty).ToListAsync();
+        }
+
         public async Task<Note?> GetNoteByIdAsync(string id)
         {
             return await notes.Find(n => n.Id == id).FirstOrDefaultAsync();

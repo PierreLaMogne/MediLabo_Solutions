@@ -61,14 +61,8 @@ namespace MediLabo_Solutions.NoteService.Services
 
         public async Task IndexAllNotesInSearchAsync()
         {
-            var allPatientsIds = await GetAllPatientIdsAsync();
-            var allNotesDtos = new List<NoteDto>();
-
-            foreach (var patientId in allPatientsIds)
-            {
-                var notes = await GetNotesByPatientIdAsync(patientId);
-                allNotesDtos.AddRange(notes);
-            }
+            var allNotes = await repo.GetAllNotesAsync();
+            var allNotesDtos = allNotes.Select(NoteMapper.ToDto).ToList();
 
             if (allNotesDtos.Any())
             {
