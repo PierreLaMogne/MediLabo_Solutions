@@ -17,7 +17,7 @@ namespace MediLabo_Solutions.RiskAssessmentService.Controllers
         [ProducesResponseType(typeof(DiabetesRiskAssessmentDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetRiskAssessment(int patientId)
         {
-            var result = await riskAssessmentAppService.AssessDiabeteRiskAsync(patientId);
+            var result = await riskAssessmentAppService.AssessDiabeteRiskAsync(patientId).ConfigureAwait(false);
             return Ok(result);
         }
     }

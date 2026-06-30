@@ -56,8 +56,8 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    tmpfs:
-      - /usr/share/opensearch/data:rw,size=2g,mode=1777
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
     ports:
       - "9200:9200"
       - "9600:9600"
@@ -220,4 +220,6 @@ volumes:
   sqlserver-data:
     driver: local
   mongodb-data:
+    driver: local
+  opensearch-data:
     driver: local

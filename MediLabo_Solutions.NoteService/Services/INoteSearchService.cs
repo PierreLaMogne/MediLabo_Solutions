@@ -10,5 +10,6 @@ namespace MediLabo_Solutions.NoteService.Services
         Task IndexNotesAsync(IEnumerable<NoteDto> notes);
         Task DeleteNoteFromIndexAsync(string noteId);
         Task DeleteIndexAsync();
+        Task<long> CountDocumentAsync();
     }
 }

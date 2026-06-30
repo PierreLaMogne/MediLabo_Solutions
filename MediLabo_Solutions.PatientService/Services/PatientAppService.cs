@@ -7,52 +7,72 @@ namespace MediLabo_Solutions.PatientService.Services
 {
     public class PatientAppService(IPatientRepository repository) : IPatientAppService
     {
-        public async Task<List<PatientDto>> GetAllPatientsAsync()
+        // ✅ OPTIMISATION GREEN CODE: Pagination déléguée au repository
+        public async Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            var patients = await repository.GetAllPatientsAsync();
-            return patients.Any()
-                ? patients.Select(p => PatientMapper.ToDto(p)).ToList()
-                : new List<PatientDto>();
+            var (patients, totalCount) = await repository.GetAllPatientsPaginatedAsync(pageNumber, pageSize).ConfigureAwait(false);
+
+            var patientDtos = patients
+                .Select(p => PatientMapper.ToListDto(p))
+                .ToList();
+
+            return new PagedResult<PatientDto>
+            {
+                Items = patientDtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<PatientDto?> GetPatientByIdAsync(int id)
         {
-            var patient = await repository.GetPatientByIdAsync(id);
+            var patient = await repository.GetPatientByIdAsync(id).ConfigureAwait(false);
             return patient != null
                 ? PatientMapper.ToDto(patient!)
                 : throw new NotFoundException($@"Le patient avec l'identifiant {id} n'a pas été trouvé.");
         }
 
-        public async Task<List<PatientDto>> GetPatientsByNameAsync(string Name)
+        // ✅ OPTIMISATION GREEN CODE: Pagination déléguée au repository
+        public async Task<PagedResult<PatientDto>> GetPatientsByNameAsync(string Name, int pageNumber = 1, int pageSize = 10)
         {
-            var patients = await repository.GetPatientsByNameAsync(Name);
-            return patients.Any()
-                ? patients.Select(p => PatientMapper.ToDto(p)).ToList()
-                : new List<PatientDto>();
+            var (patients, totalCount) = await repository.GetPatientsByNamePaginatedAsync(Name, pageNumber, pageSize).ConfigureAwait(false);
+
+            var patientDtos = patients
+                .Select(p => PatientMapper.ToListDto(p))
+                .ToList();
+
+            return new PagedResult<PatientDto>
+            {
+                Items = patientDtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<PatientDto> AddPatientAsync(PatientDto dto)
         {
             var patient = PatientMapper.ToEntity(dto);
-            var addedPatient = await repository.AddPatientAsync(patient);
+            var addedPatient = await repository.AddPatientAsync(patient).ConfigureAwait(false);
             return PatientMapper.ToDto(addedPatient);
         }
 
         public async Task<PatientDto?> UpdatePatientAsync(PatientDto dto)
         {
-            var existingPatient = await repository.GetPatientByIdAsync(dto.Id)
+            var existingPatient = await repository.GetPatientByIdAsync(dto.Id).ConfigureAwait(false)
                 ?? throw new NotFoundException($@"Le patient avec l'identifiant {dto.Id} n'a pas été trouvé.");
 
             var patientToUpdate = PatientMapper.ToEntity(dto);
             patientToUpdate.Id = dto.Id;
 
-            var updatedPatient = await repository.UpdatePatientAsync(patientToUpdate);
+            var updatedPatient = await repository.UpdatePatientAsync(patientToUpdate).ConfigureAwait(false);
             return PatientMapper.ToDto(updatedPatient!);
         }
 
         public async Task<bool> DeletePatientAsync(int id)
         {
-            return await repository.DeletePatientAsync(id)
+            return await repository.DeletePatientAsync(id).ConfigureAwait(false)
                 ? true
                 : throw new NotFoundException($@"Le patient avec l'identifiant {id} n'a pas été trouvé.");
         }

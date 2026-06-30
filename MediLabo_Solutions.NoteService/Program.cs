@@ -6,9 +6,11 @@ using MediLabo_Solutions.NoteService.Repositories;
 using MediLabo_Solutions.NoteService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using OpenSearch.Client;
+using System.IO.Compression;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +66,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Ajouter la compression de réponse
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
 // Configuration des controllers avec gestion automatique des validations
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
@@ -96,19 +116,28 @@ builder.Services.AddScoped<INoteSearchService, NoteSearchService>();
 
 var app = builder.Build();
 
-// SeedData de la mongoDB, création de l'index et indexation des notes dans OpenSearch
-using (var scope = app.Services.CreateScope())
+app.UseResponseCompression();
+
+// SeedData uniquement en environnement Development
+if (app.Environment.IsDevelopment())
 {
-    var services = scope.ServiceProvider;
-    
-    var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
-    await NoteDataSeed.SeedAsync(notesCollection);
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
 
-    var noteSearchService = services.GetRequiredService<INoteSearchService>();
-    await noteSearchService.CreateIndexAsync();
+        var noteSearchService = services.GetRequiredService<INoteSearchService>();
+        await noteSearchService.CreateIndexAsync();
 
-    var noteAppService = services.GetRequiredService<INoteAppService>();
-    await noteAppService.IndexAllNotesInSearchAsync();
+        var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
+        await NoteDataSeed.SeedAsync(notesCollection);
+
+        var documentsCount = await noteSearchService.CountDocumentAsync();
+        if (documentsCount == 0)
+        {
+            var noteAppService = services.GetRequiredService<INoteAppService>();
+            await noteAppService.IndexAllNotesInSearchAsync();
+        }
+    }
 }
 
 // Middleware de gestion des exceptions

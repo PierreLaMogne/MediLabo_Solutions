@@ -11,10 +11,11 @@ namespace MediLabo_Solutions.NoteService.Services
         private string indexName = configuration["OpenSearchSettings:IndexName"] ?? "notes";
         public async Task CreateIndexAsync()
         {
-            var indexExists = await openSearchClient.Indices.ExistsAsync(indexName);
+            var indexExists = await openSearchClient.Indices.ExistsAsync(indexName).ConfigureAwait(false);
             if (indexExists.Exists)
-                await openSearchClient.Indices.DeleteAsync(indexName);
+                return;
 
+            // Créer l'index uniquement s'il n'existe pas
             var createIndexResponse = await openSearchClient.Indices.CreateAsync(indexName, c => c
                 .Settings(s => s
                     .NumberOfShards(1)
@@ -63,8 +64,8 @@ namespace MediLabo_Solutions.NoteService.Services
                             )
                         )
                     )
-                )
-            );
+                )                
+            ).ConfigureAwait(false);
 
             if (!createIndexResponse.IsValid)
             {
@@ -74,19 +75,15 @@ namespace MediLabo_Solutions.NoteService.Services
 
         public async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId, IEnumerable<string> triggerTerms)
         {
-            var identifiedTriggers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var triggerTermsList = triggerTerms.ToList();
-
-            foreach (var term in triggerTermsList)
+            
+            var searchTasks = triggerTermsList.Select(async term =>
             {
-                var searchResponse = openSearchClient.Search<NoteDto>(s => s
+                var searchResponse = await openSearchClient.SearchAsync<NoteDto>(s => s
                     .Index(indexName)
                     .Query(q => q
                         .Bool(b => b
-                            .Must(m => m
-                                .Term(t => t.Field(f => f.PatientId).Value(patientId)
-                                )
-                            )
+                            .Must(m => m.Term(t => t.Field(f => f.PatientId).Value(patientId)))
                             .Should(
                                 sh => sh.Match(ma => ma.Field(f => f.Contenu).Query(term).Operator(Operator.And).Boost(3.0)),
                                 sh => sh.Match(ma => ma.Field("contenu.stemmed").Query(term).Boost(2.0)),
@@ -97,20 +94,22 @@ namespace MediLabo_Solutions.NoteService.Services
                         )
                     )
                     .Size(1000)
-                );
+                ).ConfigureAwait(false);
 
-                if (searchResponse.IsValid && searchResponse.Documents.Any())
-                {
-                    identifiedTriggers.Add(term);
-                }
-            }
+                return searchResponse.IsValid && searchResponse.Documents.Any() ? term : null;
+            });
 
-            return identifiedTriggers;
+            var results = await Task.WhenAll(searchTasks).ConfigureAwait(false);
+            
+            return new HashSet<string>(
+                results.Where(term => term != null)!,
+                StringComparer.OrdinalIgnoreCase
+            );
         }
 
         public async Task IndexNoteAsync(NoteDto note)
         {
-            var indexResponse = await openSearchClient.IndexDocumentAsync(note);
+            var indexResponse = await openSearchClient.IndexDocumentAsync(note).ConfigureAwait(false);
             if (!indexResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de l'indexation de la note: {indexResponse.ServerError?.Error?.Reason}");
@@ -127,7 +126,7 @@ namespace MediLabo_Solutions.NoteService.Services
                 .Index(indexName)
                 .IndexMany(notes, (descriptor, note) => descriptor.Id(note.Id))
                 .Refresh(Refresh.WaitFor)
-            );
+            ).ConfigureAwait(false);
             if (!bulkIndexResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de l'indexation en masse: {bulkIndexResponse.ServerError?.Error?.Reason}");
@@ -136,7 +135,7 @@ namespace MediLabo_Solutions.NoteService.Services
 
         public async Task DeleteNoteFromIndexAsync(string noteId)
         {
-            var deleteResponse = await openSearchClient.DeleteAsync<NoteDto>(noteId, d => d.Index(indexName));
+            var deleteResponse = await openSearchClient.DeleteAsync<NoteDto>(noteId, d => d.Index(indexName)).ConfigureAwait(false);
             if (!deleteResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de la suppression de la note de l'index: {deleteResponse.ServerError?.Error?.Reason}");
@@ -145,11 +144,22 @@ namespace MediLabo_Solutions.NoteService.Services
         
         public async Task DeleteIndexAsync()
         {
-            var existsResponse = await openSearchClient.Indices.ExistsAsync(indexName);
+            var existsResponse = await openSearchClient.Indices.ExistsAsync(indexName).ConfigureAwait(false);
             if (existsResponse.Exists)
             {
-                await openSearchClient.Indices.DeleteAsync(indexName);
+                await openSearchClient.Indices.DeleteAsync(indexName).ConfigureAwait(false);
             }
+        }
+
+        public async Task<long> CountDocumentAsync()
+        {
+            var countResponse = await openSearchClient.CountAsync<NoteDto>(c => c.Index(indexName)).ConfigureAwait(false);
+            if (!countResponse.IsValid)
+            {
+                throw new Exception($"Erreur lors du comptage des documents: {countResponse.ServerError?.Error?.Reason}");
+            }
+            Console.WriteLine($"Nombre de documents dans l'index '{indexName}': {countResponse.Count}");
+            return countResponse.Count;
         }
     }
 }

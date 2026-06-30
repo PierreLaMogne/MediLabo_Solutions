@@ -17,35 +17,35 @@ namespace MediLabo_Solutions.AuthService.Services
                 throw new BadRequestException("Nom d'utilisateur ou mot de passe manquant.");
 
             // Recherche de l'utilisateur
-            var user = await userManager.FindByNameAsync(request.Username);
+            var user = await userManager.FindByNameAsync(request.Username).ConfigureAwait(false);
             if (user == null)
                 throw new UnauthorizedException("Nom d'utilisateur ou mot de passe incorrect.");
 
             // Vérification du verrouillage
-            if (await userManager.IsLockedOutAsync(user))
+            if (await userManager.IsLockedOutAsync(user).ConfigureAwait(false))
             {
-                var lockoutEnd = await userManager.GetLockoutEndDateAsync(user);
+                var lockoutEnd = await userManager.GetLockoutEndDateAsync(user).ConfigureAwait(false);
                 throw new UnauthorizedException($"Compte temporairement bloqué. Réessayez après {lockoutEnd?.LocalDateTime:HH:mm}.");
             }
 
             // Tentative de connexion
-            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true).ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
                 if (result.IsLockedOut)
                 {
-                    var lockoutEnd = await userManager.GetLockoutEndDateAsync(user);
+                    var lockoutEnd = await userManager.GetLockoutEndDateAsync(user).ConfigureAwait(false);
                     throw new UnauthorizedException($"Trop de tentatives échouées. Compte bloqué jusqu'à {lockoutEnd?.LocalDateTime:HH:mm}.");
                 }
                 throw new UnauthorizedException("Nom d'utilisateur ou mot de passe incorrect.");
             }
 
             // Récupération du rôle de l'utilisateur
-            var roles = await userManager.GetRolesAsync(user);
+            var roles = await userManager.GetRolesAsync(user).ConfigureAwait(false);
 
             // Génération du token JWT
-            var token = await GenerateJwtToken(user, roles);
+            var token = GenerateJwtToken(user, roles);
 
             return new AuthResponse
             {
@@ -55,7 +55,7 @@ namespace MediLabo_Solutions.AuthService.Services
             };
         }
 
-        private async Task<JwtSecurityToken> GenerateJwtToken(IdentityUser user, IList<string> roles)
+        private JwtSecurityToken GenerateJwtToken(IdentityUser user, IList<string> roles)
         {
             var claims = new List<Claim>
             {
@@ -63,13 +63,16 @@ namespace MediLabo_Solutions.AuthService.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
+            
             // Ajout des rôles en tant que claims
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
+            
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            
             return new JwtSecurityToken(
                 issuer: configuration["Jwt:Issuer"],
                 audience: configuration["Jwt:Audience"],

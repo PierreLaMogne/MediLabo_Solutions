@@ -15,7 +15,7 @@
                 <div class="col-md-4">
                     <label for="searchType" class="form-label">Type de recherche</label>
                     <select id="searchType" class="form-select" @bind="searchType">
-                        <option value="name">Par Nom/Prénom</option>
+                        <option value="name">Par Nom</option>
                         <option value="id">Par Identifiant</option>
                     </select>
                 </div>
@@ -23,14 +23,14 @@
                 @if (searchType == "name")
                 {
                     <div class="col-md-6">
-                        <label for="searchName" class="form-label">Nom ou Prénom</label>
+                        <label for="searchName" class="form-label">Nom</label>
                         <input type="text" 
                                id="searchName" 
                                class="form-control" 
                                @bind="searchName" 
                                @bind:event="oninput"
                                @onkeypress="HandleKeyPress"
-                               placeholder="Entrez le nom ou le prénom..." />
+                               placeholder="Entrez le nom..." />
                     </div>
                 }
                 else
@@ -95,7 +95,7 @@
                 <p class="mt-2"><em>Recherche en cours...</em></p>
             </div>
         }
-        else if (searchResults == null || !searchResults.Any())
+        else if (searchResults == null || searchResults.TotalCount == 0)
         {
             <div class="alert alert-info">
                 <i class="bi bi-info-circle-fill"></i> Aucun patient trouvé pour cette recherche.
@@ -110,10 +110,18 @@
         {
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-list-ul"></i> 
-                        Résultats de recherche (@searchResults.Count() patient@(searchResults.Count() > 1 ? "s" : "") trouvé@(searchResults.Count() > 1 ? "s" : ""))
-                    </h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul"></i> 
+                            Résultats de recherche (@searchResults.TotalCount patient@(searchResults.TotalCount > 1 ? "s" : "") trouvé@(searchResults.TotalCount > 1 ? "s" : ""))
+                        </h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-light @(pageSize == 5 ? "active" : "")" @onclick="() => ChangePageSize(5)">5</button>
+                            <button class="btn btn-light @(pageSize == 10 ? "active" : "")" @onclick="() => ChangePageSize(10)">10</button>
+                            <button class="btn btn-light @(pageSize == 25 ? "active" : "")" @onclick="() => ChangePageSize(25)">25</button>
+                            <button class="btn btn-light @(pageSize == 50 ? "active" : "")" @onclick="() => ChangePageSize(50)">50</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -124,29 +132,23 @@
                                     <th>Prénom</th>
                                     <th>Nom</th>
                                     <th>Date de Naissance</th>
-                                    <th>Âge</th>
-                                    <th>Genre</th>
-                                    <th>Téléphone</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var patient in searchResults)
+                                @foreach (var patient in searchResults.Items)
                                 {
                                     <tr>
                                         <td class="fw-bold">@patient.Id</td>
                                         <td>@patient.Prénom</td>
                                         <td>@patient.Nom</td>
                                         <td>@patient.DateDeNaissance.ToString("dd/MM/yyyy")</td>
-                                        <td>@CalculateAge(patient.DateDeNaissance) ans</td>
                                         <td>
-                                            <span class="badge bg-secondary">@GetGenreLabel(patient.Genre)</span>
-                                        </td>
-                                        <td>@(patient.NuméroDeTéléphone ?? "-")</td>
-                                        <td class="align-middle">
                                             <button class="btn btn-sm btn-primary" 
-                                                        @onclick="() => ViewPatient(patient.Id)"
-                                                        title="Consulter"> Consulter</button>
+                                                    @onclick="() => ViewPatient(patient.Id)"
+                                                    title="Consulter">
+                                                <i class="bi bi-eye"></i> Consulter
+                                            </button>
                                         </td>
                                     </tr>
                                 }
@@ -154,6 +156,50 @@
                         </table>
                     </div>
                 </div>
+                
+                <!-- Pagination -->
+                @if (searchResults.TotalPages > 1)
+                {
+                    <div class="card-footer">
+                        <nav aria-label="Navigation des pages">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item @(!searchResults.HasPreviousPage ? "disabled" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(1)" disabled="@(!searchResults.HasPreviousPage)">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </button>
+                                </li>
+                                <li class="page-item @(!searchResults.HasPreviousPage ? "disabled" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(currentPage - 1)" disabled="@(!searchResults.HasPreviousPage)">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                </li>
+                                
+                                @for (int i = GetStartPage(); i <= GetEndPage(); i++)
+                                {
+                                    var page = i;
+                                    <li class="page-item @(page == currentPage ? "active" : "")">
+                                        <button class="page-link" @onclick="() => GoToPage(page)">@(searchResults.PageNumber)</button>
+                                    </li>
+                                }
+                                
+                                <li class="page-item @(!searchResults.HasNextPage ? "disabled" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(currentPage + 1)" disabled="@(!searchResults.HasNextPage)">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </li>
+                                <li class="page-item @(!searchResults.HasNextPage ? "disabled" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(searchResults.TotalPages)" disabled="@(!searchResults.HasNextPage)">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                        <div class="text-center mt-2 small text-muted">
+                            Page @currentPage sur @searchResults.TotalPages
+                            (@((currentPage - 1) * pageSize + 1) - @Math.Min(currentPage * pageSize, searchResults.TotalCount) sur @searchResults.TotalCount)
+                        </div>
+                    </div>
+                }
             </div>
         }
     }
@@ -170,10 +216,13 @@
     private string searchType = "name";
     private string searchName = string.Empty;
     private int searchId = 0;
-    private IEnumerable<PatientDto>? searchResults;
+    private PagedResult<PatientDto>? searchResults;
     private bool isSearching = false;
     private bool hasSearched = false;
     private string? errorMessage;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private const int MaxPagesToShow = 5;
 
     private async Task SearchPatients()
     {
@@ -182,6 +231,12 @@
             return;
         }
 
+        currentPage = 1; // Réinitialiser à la première page lors d'une nouvelle recherche
+        await PerformSearch();
+    }
+
+    private async Task PerformSearch()
+    {
         isSearching = true;
         hasSearched = true;
         errorMessage = null;
@@ -193,7 +248,7 @@
             {
                 if (!string.IsNullOrWhiteSpace(searchName))
                 {
-                    searchResults = await PatientApiService.GetPatientByNameAsync(searchName.Trim());
+                    searchResults = await PatientApiService.GetPatientByNameAsync(searchName.Trim(), currentPage, pageSize);
                 }
             }
             else // searchType == "id"
@@ -201,7 +256,13 @@
                 if (searchId > 0)
                 {
                     var patient = await PatientApiService.GetPatientByIdAsync(searchId);
-                    searchResults = patient != null ? new[] { patient } : Enumerable.Empty<PatientDto>();
+                    searchResults = new PagedResult<PatientDto>
+                    {
+                        Items = patient != null ? new List<PatientDto> { patient } : new List<PatientDto>(),
+                        TotalCount = patient != null ? 1 : 0,
+                        PageNumber = 1,
+                        PageSize = pageSize
+                    };
                 }
             }
         }
@@ -213,6 +274,44 @@
         {
             isSearching = false;
         }
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || (searchResults != null && page > searchResults.TotalPages))
+            return;
+
+        currentPage = page;
+        await PerformSearch();
+    }
+
+    private async Task ChangePageSize(int newPageSize)
+    {
+        pageSize = newPageSize;
+        currentPage = 1; // Retour à la première page
+        await PerformSearch();
+    }
+
+    private int GetStartPage()
+    {
+        if (searchResults == null) return 1;
+        
+        var half = MaxPagesToShow / 2;
+        var start = currentPage - half;
+        
+        if (start < 1) start = 1;
+        if (start + MaxPagesToShow > searchResults.TotalPages)
+            start = Math.Max(1, searchResults.TotalPages - MaxPagesToShow + 1);
+        
+        return start;
+    }
+
+    private int GetEndPage()
+    {
+        if (searchResults == null) return 1;
+        
+        var end = GetStartPage() + MaxPagesToShow - 1;
+        return Math.Min(end, searchResults.TotalPages);
     }
 
     private bool ValidateSearch()
@@ -239,6 +338,8 @@
         searchResults = null;
         hasSearched = false;
         errorMessage = null;
+        currentPage = 1;
+        pageSize = 10;
     }
 
     private async Task HandleKeyPress(KeyboardEventArgs e)

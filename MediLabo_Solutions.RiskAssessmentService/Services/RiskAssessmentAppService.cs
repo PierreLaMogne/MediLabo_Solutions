@@ -12,10 +12,12 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             "Anormal", "Cholestérol", "Vertiges", "Rechute", "Réaction", "Anticorps"
         };
 
+        private static readonly List<string> TriggerTermsList = TriggerTerms.ToList();
+
         public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int patientId)
         {
             // Récupérer les informations du patient depuis le service PatientService
-            var patient = await GetPatientAsync(patientId);
+            var patient = await GetPatientAsync(patientId).ConfigureAwait(false);
             if (patient == null)
                 throw new NotFoundException($"Patient with ID {patientId} not found.");
 
@@ -25,7 +27,7 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
                 age--;
 
             // Rechercher les termes déclencheurs dans les notes du patient via OpenSearch dans le service NoteService
-            var identifiedTriggers = await SearchTriggerTermsAsync(patientId);
+            var identifiedTriggers = await SearchTriggerTermsAsync(patientId).ConfigureAwait(false);
 
             // Compter le nombre de termes déclencheurs identifiés
             var triggerTermsCount = identifiedTriggers.Count;
@@ -49,9 +51,9 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         private async Task<PatientDto?> GetPatientAsync(int patientId)
         {
             var client = httpClientFactory.CreateClient("PatientService");
-            var response = await client.GetAsync($"/api/patients/{patientId}");
+            var response = await client.GetAsync($"/api/patients/{patientId}").ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
-                return await response.Content.ReadFromJsonAsync<PatientDto>();
+                return await response.Content.ReadFromJsonAsync<PatientDto>().ConfigureAwait(false);
 
             return null;
         }
@@ -59,11 +61,11 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         private async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId)
         {
             var client = httpClientFactory.CreateClient("NoteService");
-            var response = await client.PostAsJsonAsync($"/api/notes/search-triggers?patientId={patientId}", TriggerTerms.ToList());
+            var response = await client.PostAsJsonAsync($"/api/notes/search-triggers?patientId={patientId}", TriggerTermsList).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<HashSet<string>>()
+                return await response.Content.ReadFromJsonAsync<HashSet<string>>().ConfigureAwait(false)
                     ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
 

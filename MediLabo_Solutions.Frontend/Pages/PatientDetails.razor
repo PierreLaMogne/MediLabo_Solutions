@@ -57,6 +57,9 @@
                     <button class="btn btn-warning me-2" @onclick="EditPatient">
                         <i class="bi bi-pencil-fill"></i> Modifier
                     </button>
+                    <button class="btn btn-danger me-2" @onclick="DeletePatient">
+                        <i class="bi bi-trash-fill"></i> Supprimer
+                    </button>
                     <button class="btn btn-secondary" @onclick="GoBackToList">
                         <i class="bi bi-arrow-left"></i> Retour
                     </button>
@@ -435,6 +438,11 @@
     private void EditPatient()
     {
         NavigationManager.NavigateTo($"/patients/edit/{Id}");
+    }
+
+    private void DeletePatient()
+    {
+        NavigationManager.NavigateTo($"/patients/delete/{Id}");
     }
 
     private void AddNote()
