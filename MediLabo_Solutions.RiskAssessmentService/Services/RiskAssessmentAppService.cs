@@ -12,6 +12,8 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             "Anormal", "Cholestérol", "Vertiges", "Rechute", "Réaction", "Anticorps"
         };
 
+        private static readonly List<string> TriggerTermsList = TriggerTerms.ToList();
+
         public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int patientId)
         {
             // Récupérer les informations du patient depuis le service PatientService
@@ -59,7 +61,7 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         private async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId)
         {
             var client = httpClientFactory.CreateClient("NoteService");
-            var response = await client.PostAsJsonAsync($"/api/notes/search-triggers?patientId={patientId}", TriggerTerms.ToList());
+            var response = await client.PostAsJsonAsync($"/api/notes/search-triggers?patientId={patientId}", TriggerTermsList);
 
             if (response.IsSuccessStatusCode)
             {
