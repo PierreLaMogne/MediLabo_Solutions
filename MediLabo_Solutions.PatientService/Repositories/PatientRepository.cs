@@ -74,12 +74,7 @@ namespace MediLabo_Solutions.PatientService.Repositories
             var existingPatient = await context.Patients.FindAsync(patient.Id);
             if (existingPatient == null) return null;
 
-            existingPatient.Nom = patient.Nom;
-            existingPatient.Prénom = patient.Prénom;
-            existingPatient.DateDeNaissance = patient.DateDeNaissance;
-            existingPatient.Genre = patient.Genre;
-            existingPatient.AdressePostale = patient.AdressePostale;
-            existingPatient.NuméroDeTéléphone = patient.NuméroDeTéléphone;
+            PatientMapper.UpdateEntity(existingPatient, patient);
 
             await context.SaveChangesAsync();
 
