@@ -24,7 +24,17 @@ namespace MediLabo_Solutions.Frontend.Services
                 var cacheEntryOptions = new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = absoluteExpiration ?? TimeSpan.FromMinutes(5),
-                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                    SlidingExpiration = TimeSpan.FromMinutes(2),
+                    PostEvictionCallbacks =
+                    {
+                        new PostEvictionCallbackRegistration
+                        {
+                            EvictionCallback = (key, value, reason, state) =>
+                            {
+                                _cacheKeys.Remove(key.ToString()!);
+                            }
+                        }
+                    }
                 };
                 cache.Set(key, value, cacheEntryOptions);
                 _cacheKeys.Add(key);
