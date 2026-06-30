@@ -73,7 +73,7 @@ namespace MediLabo_Solutions.PatientService.Repositories
 
         public async Task<Patient?> UpdatePatientAsync(Patient patient)
         {
-            var existingPatient = await context.Patients.FindAsync(patient.Id).ConfigureAwait(false);
+            var existingPatient = await context.Patients.FindAsync(patient.Id).AsTask().ConfigureAwait(false);
             if (existingPatient == null) return null;
 
             PatientMapper.UpdateEntity(existingPatient, patient);
@@ -87,7 +87,7 @@ namespace MediLabo_Solutions.PatientService.Repositories
 
         public async Task<bool> DeletePatientAsync(int id)
         {
-            var patient = await context.Patients.FindAsync(id).ConfigureAwait(false);
+            var patient = await context.Patients.FindAsync(id).AsTask().ConfigureAwait(false);
 
             if (patient == null) return false;
 

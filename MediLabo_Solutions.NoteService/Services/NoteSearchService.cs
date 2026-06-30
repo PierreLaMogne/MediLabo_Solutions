@@ -75,19 +75,15 @@ namespace MediLabo_Solutions.NoteService.Services
 
         public async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId, IEnumerable<string> triggerTerms)
         {
-            var identifiedTriggers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var triggerTermsList = triggerTerms.ToList();
-
-            foreach (var term in triggerTermsList)
+            
+            var searchTasks = triggerTermsList.Select(async term =>
             {
-                var searchResponse = openSearchClient.Search<NoteDto>(s => s
+                var searchResponse = await openSearchClient.SearchAsync<NoteDto>(s => s
                     .Index(indexName)
                     .Query(q => q
                         .Bool(b => b
-                            .Must(m => m
-                                .Term(t => t.Field(f => f.PatientId).Value(patientId)
-                                )
-                            )
+                            .Must(m => m.Term(t => t.Field(f => f.PatientId).Value(patientId)))
                             .Should(
                                 sh => sh.Match(ma => ma.Field(f => f.Contenu).Query(term).Operator(Operator.And).Boost(3.0)),
                                 sh => sh.Match(ma => ma.Field("contenu.stemmed").Query(term).Boost(2.0)),
@@ -98,15 +94,17 @@ namespace MediLabo_Solutions.NoteService.Services
                         )
                     )
                     .Size(1000)
-                );
+                ).ConfigureAwait(false);
 
-                if (searchResponse.IsValid && searchResponse.Documents.Any())
-                {
-                    identifiedTriggers.Add(term);
-                }
-            }
+                return searchResponse.IsValid && searchResponse.Documents.Any() ? term : null;
+            });
 
-            return identifiedTriggers;
+            var results = await Task.WhenAll(searchTasks).ConfigureAwait(false);
+            
+            return new HashSet<string>(
+                results.Where(term => term != null)!,
+                StringComparer.OrdinalIgnoreCase
+            );
         }
 
         public async Task IndexNoteAsync(NoteDto note)
