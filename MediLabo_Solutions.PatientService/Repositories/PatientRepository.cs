@@ -22,14 +22,15 @@ namespace MediLabo_Solutions.PatientService.Repositories
                 entry.AbsoluteExpirationRelativeToNow = CacheDuration;
                 entry.SlidingExpiration = TimeSpan.FromMinutes(2);
 
-                return await query.CountAsync();
-            });
+                return await query.CountAsync().ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             var patients = await query
                 .OrderBy(p => p.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             return (patients, totalCount);
         }
@@ -40,7 +41,7 @@ namespace MediLabo_Solutions.PatientService.Repositories
                 .Where(p => EF.Functions.Like(p.Nom, $"%{nom}%"))
                 .AsNoTracking();
 
-            var totalCount = await filteredQuery.CountAsync();
+            var totalCount = await filteredQuery.CountAsync().ConfigureAwait(false);
             if (totalCount == 0)
                 return (Enumerable.Empty<Patient>(), 0);
 
@@ -48,20 +49,21 @@ namespace MediLabo_Solutions.PatientService.Repositories
                 .OrderBy(p => p.Nom)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             return (patients, totalCount);
         }
 
         public async Task<Patient?> GetPatientByIdAsync(int id)
         {
-            return await context.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+            return await context.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id).ConfigureAwait(false);
         }
 
         public async Task<Patient> AddPatientAsync(Patient patient)
         {
             context.Patients.Add(patient);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync().ConfigureAwait(false);
 
             // Invalide le cache après l'ajout d'un nouveau patient
             cache.Remove(CacheKey);
@@ -71,12 +73,12 @@ namespace MediLabo_Solutions.PatientService.Repositories
 
         public async Task<Patient?> UpdatePatientAsync(Patient patient)
         {
-            var existingPatient = await context.Patients.FindAsync(patient.Id);
+            var existingPatient = await context.Patients.FindAsync(patient.Id).ConfigureAwait(false);
             if (existingPatient == null) return null;
 
             PatientMapper.UpdateEntity(existingPatient, patient);
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync().ConfigureAwait(false);
 
             // Pas d'invalidation du cache car le total de patients reste le même après une mise à jour
 
@@ -85,12 +87,12 @@ namespace MediLabo_Solutions.PatientService.Repositories
 
         public async Task<bool> DeletePatientAsync(int id)
         {
-            var patient = await context.Patients.FindAsync(id);
+            var patient = await context.Patients.FindAsync(id).ConfigureAwait(false);
 
             if (patient == null) return false;
 
             context.Patients.Remove(patient);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync().ConfigureAwait(false);
 
             // Invalide le cache après la suppression d'un patient
             cache.Remove(CacheKey);

@@ -19,7 +19,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllPatients([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var patients = await service.GetAllPatientsAsync(pageNumber, pageSize);
+            var patients = await service.GetAllPatientsAsync(pageNumber, pageSize).ConfigureAwait(false);
             return Ok(patients);
         }
 
@@ -27,7 +27,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         [ProducesResponseType(typeof(PatientDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPatientById([FromRoute][Required] int id)
         {
-            var patient = await service.GetPatientByIdAsync(id);
+            var patient = await service.GetPatientByIdAsync(id).ConfigureAwait(false);
             return Ok(patient);
         }
 
@@ -35,7 +35,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPatientByName([FromRoute][Required] string nom, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var patients = await service.GetPatientsByNameAsync(nom, pageNumber, pageSize);
+            var patients = await service.GetPatientsByNameAsync(nom, pageNumber, pageSize).ConfigureAwait(false);
             return Ok(patients);
         }
 
@@ -43,7 +43,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         [ProducesResponseType(typeof(PatientDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreatePatient([FromBody][Required] PatientDto dto)
         {
-            var createdPatient = await service.AddPatientAsync(dto);
+            var createdPatient = await service.AddPatientAsync(dto).ConfigureAwait(false);
             return CreatedAtAction(nameof(GetPatientById), new { id = createdPatient.Id }, createdPatient);
         }
 
@@ -53,7 +53,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         public async Task<IActionResult> UpdatePatient([FromRoute][Required] int id, [FromBody][Required] PatientDto dto)
         {
             dto.Id = id;
-            var updatedPatient = await service.UpdatePatientAsync(dto);
+            var updatedPatient = await service.UpdatePatientAsync(dto).ConfigureAwait(false);
             return Ok(updatedPatient);
         }
 
@@ -61,7 +61,7 @@ namespace MediLabo_Solutions.PatientService.Controllers
         [ProducesResponseType(typeof(bool), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeletePatient([FromRoute][Required] int id)
         {
-            var result = await service.DeletePatientAsync(id);
+            var result = await service.DeletePatientAsync(id).ConfigureAwait(false);
             return NoContent();
         }
     }
