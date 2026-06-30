@@ -20,7 +20,7 @@ namespace MediLabo_Solutions.AuthService.Controllers
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var response = await authAppService.AuthenticateAsync(request);
+            var response = await authAppService.AuthenticateAsync(request).ConfigureAwait(false);
             return Ok(response);
         }
     }
