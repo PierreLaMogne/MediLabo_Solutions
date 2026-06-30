@@ -11,7 +11,7 @@ namespace MediLabo_Solutions.NoteService.Services
         private string indexName = configuration["OpenSearchSettings:IndexName"] ?? "notes";
         public async Task CreateIndexAsync()
         {
-            var indexExists = await openSearchClient.Indices.ExistsAsync(indexName);
+            var indexExists = await openSearchClient.Indices.ExistsAsync(indexName).ConfigureAwait(false);
             if (indexExists.Exists)
                 return;
 
@@ -64,8 +64,8 @@ namespace MediLabo_Solutions.NoteService.Services
                             )
                         )
                     )
-                )
-            );
+                )                
+            ).ConfigureAwait(false);
 
             if (!createIndexResponse.IsValid)
             {
@@ -111,7 +111,7 @@ namespace MediLabo_Solutions.NoteService.Services
 
         public async Task IndexNoteAsync(NoteDto note)
         {
-            var indexResponse = await openSearchClient.IndexDocumentAsync(note);
+            var indexResponse = await openSearchClient.IndexDocumentAsync(note).ConfigureAwait(false);
             if (!indexResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de l'indexation de la note: {indexResponse.ServerError?.Error?.Reason}");
@@ -128,7 +128,7 @@ namespace MediLabo_Solutions.NoteService.Services
                 .Index(indexName)
                 .IndexMany(notes, (descriptor, note) => descriptor.Id(note.Id))
                 .Refresh(Refresh.WaitFor)
-            );
+            ).ConfigureAwait(false);
             if (!bulkIndexResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de l'indexation en masse: {bulkIndexResponse.ServerError?.Error?.Reason}");
@@ -137,7 +137,7 @@ namespace MediLabo_Solutions.NoteService.Services
 
         public async Task DeleteNoteFromIndexAsync(string noteId)
         {
-            var deleteResponse = await openSearchClient.DeleteAsync<NoteDto>(noteId, d => d.Index(indexName));
+            var deleteResponse = await openSearchClient.DeleteAsync<NoteDto>(noteId, d => d.Index(indexName)).ConfigureAwait(false);
             if (!deleteResponse.IsValid)
             {
                 throw new Exception($"Erreur lors de la suppression de la note de l'index: {deleteResponse.ServerError?.Error?.Reason}");
@@ -146,16 +146,16 @@ namespace MediLabo_Solutions.NoteService.Services
         
         public async Task DeleteIndexAsync()
         {
-            var existsResponse = await openSearchClient.Indices.ExistsAsync(indexName);
+            var existsResponse = await openSearchClient.Indices.ExistsAsync(indexName).ConfigureAwait(false);
             if (existsResponse.Exists)
             {
-                await openSearchClient.Indices.DeleteAsync(indexName);
+                await openSearchClient.Indices.DeleteAsync(indexName).ConfigureAwait(false);
             }
         }
 
         public async Task<long> CountDocumentAsync()
         {
-            var countResponse = await openSearchClient.CountAsync<NoteDto>(c => c.Index(indexName));
+            var countResponse = await openSearchClient.CountAsync<NoteDto>(c => c.Index(indexName)).ConfigureAwait(false);
             if (!countResponse.IsValid)
             {
                 throw new Exception($"Erreur lors du comptage des documents: {countResponse.ServerError?.Error?.Reason}");
