@@ -68,7 +68,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 40s
+      start_period: 60s
 
   # Service d'authentification
   authservice:
@@ -167,9 +167,12 @@ services:
     ports:
       - "5004:8080"
     depends_on:
-      - patientservice
-      - noteservice
-      - opensearch
+      patientservice:
+        condition: service_started
+      noteservice:
+        condition: service_started
+      opensearch:
+        condition: service_healthy
     networks:
       - medilabo-network
     restart: unless-stopped
