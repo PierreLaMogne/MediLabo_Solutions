@@ -447,12 +447,12 @@
 
     private void AddNote()
     {
-        NavigationManager.NavigateTo($"/patients/{Id}/notes/new");
+        NavigationManager.NavigateTo($"/patients/{Id}/notes/new", forceLoad: true);
     }
 
     private void EditNote(string noteId)
     {
-        NavigationManager.NavigateTo($"/patients/{Id}/notes/edit/{noteId}");
+        NavigationManager.NavigateTo($"/patients/{Id}/notes/edit/{noteId}", forceLoad: true);
     }
 
     private async Task DeleteNote(string noteId)
