@@ -136,8 +136,15 @@ namespace MediLabo_Solutions.NoteService.Services
         public async Task DeleteNoteFromIndexAsync(string noteId)
         {
             var deleteResponse = await openSearchClient.DeleteAsync<NoteDto>(noteId, d => d.Index(indexName)).ConfigureAwait(false);
+            
+            // Si la suppression réussit OU si le document n'existe pas, continuer sans erreur
             if (!deleteResponse.IsValid)
             {
+                // Vérifier si l'erreur est simplement que le document n'existe pas
+                if (deleteResponse.Result == Result.NotFound)
+                    return;
+                
+                // Autres erreurs réelles
                 throw new Exception($"Erreur lors de la suppression de la note de l'index: {deleteResponse.ServerError?.Error?.Reason}");
             }
         }
