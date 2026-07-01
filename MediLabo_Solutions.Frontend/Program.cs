@@ -31,6 +31,7 @@ builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
 // Ajout des services d'autorisation
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<PatientDataRefreshService>();
 
 // Configuration de l'URL de l'API Gateway
 var apiGatewayUrl = builder.Configuration["ApiGatewayUrl"] ?? "https://localhost:7104";

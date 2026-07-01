@@ -5,6 +5,8 @@
 @inject IRiskAssessmentApiService RiskAssessmentApiService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject PatientDataRefreshService RefreshService
+@implements IDisposable
 
 <PageTitle>Détails du Patient - MédiLabo Solutions</PageTitle>
 
@@ -266,12 +268,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Lancer toutes les opérations en parallèle
+        // S'abonner aux changements
+        RefreshService.OnNoteChanged += OnNoteChangedHandler;
+        
         await Task.WhenAll(
             LoadPatient(),
             LoadNotes(),
             LoadRiskAssessment()
         );
+    }
+
+    private async void OnNoteChangedHandler()
+    {
+        await Task.WhenAll(
+            LoadNotes(),
+            LoadRiskAssessment()
+        );
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        RefreshService.OnNoteChanged -= OnNoteChangedHandler;
     }
 
     private async Task LoadPatient()
@@ -338,7 +356,7 @@
         return riskLevel switch
         {
             RiskLevel.None => "Aucun Risque",
-            RiskLevel.Borderline => "Risque Limité",
+            RiskLevel.Borderline => "Risque Limités",
             RiskLevel.InDanger => "Risque Élevé",
             RiskLevel.EarlyOnset => "Risque Très Élevé",
             _ => riskLevel.ToString()
@@ -447,12 +465,12 @@
 
     private void AddNote()
     {
-        NavigationManager.NavigateTo($"/patients/{Id}/notes/new", forceLoad: true);
+        NavigationManager.NavigateTo($"/patients/{Id}/notes/new");
     }
 
     private void EditNote(string noteId)
     {
-        NavigationManager.NavigateTo($"/patients/{Id}/notes/edit/{noteId}", forceLoad: true);
+        NavigationManager.NavigateTo($"/patients/{Id}/notes/edit/{noteId}");
     }
 
     private async Task DeleteNote(string noteId)
@@ -465,8 +483,8 @@
                 var success = await NoteApiService.DeleteNoteAsync(noteId);
                 if (success)
                 {
-                    await LoadNotes();
-                    await LoadRiskAssessment(); // Recharger l'évaluation après suppression d'une note
+                    // Appeler le service de DataRefresh pour notifier le changement
+                    RefreshService.NotifyNoteChanged(Id);
                 }
             }
             catch (Exception ex)

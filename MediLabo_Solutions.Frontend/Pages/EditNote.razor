@@ -4,6 +4,7 @@
 @inject INoteApiService NoteApiService
 @inject IPatientApiService PatientApiService
 @inject NavigationManager NavigationManager
+@inject PatientDataRefreshService RefreshService
 
 <PageTitle>@(IsEditMode ? "Modifier la note" : "Nouvelle note") - MédiLabo Solutions</PageTitle>
 
@@ -192,7 +193,7 @@
                 var success = await NoteApiService.UpdateNoteAsync(NoteId!, noteDto);
                 if (success)
                 {
-                    GoBack();
+                    await SaveNote();
                 }
                 else
                 {
@@ -202,7 +203,7 @@
             else
             {
                 await NoteApiService.CreateNoteAsync(noteDto);
-                GoBack();
+                await SaveNote();
             }
         }
         catch (Exception ex)
@@ -213,6 +214,12 @@
         {
             isSaving = false;
         }
+    }
+
+    private async Task SaveNote()
+    {
+        RefreshService.NotifyNoteChanged(PatientId);
+        NavigationManager.NavigateTo($"/patients/{PatientId}");
     }
 
     private void GoBack()
