@@ -236,11 +236,11 @@
                                         @note.Date.ToString("dd/MM/yyyy")
                                     </h6>
                                     <div>
-                                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditNote(note.Id!)">
-                                            <i class="bi bi-pencil"></i>
+                                        <button class="btn btn-sm btn-warning me-1" @onclick="() => EditNote(note.Id!)">
+                                            <i class="bi bi-pencil"></i> Modifier la note
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteNote(note.Id!)">
-                                            <i class="bi bi-trash"></i>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteNote(note.Id!)">
+                                            <i class="bi bi-trash"></i> Supprimer la note
                                         </button>
                                     </div>
                                 </div>
