@@ -5,6 +5,8 @@
 @inject IRiskAssessmentApiService RiskAssessmentApiService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject PatientDataRefreshService RefreshService
+@implements IDisposable
 
 <PageTitle>Détails du Patient - MédiLabo Solutions</PageTitle>
 
@@ -130,40 +132,33 @@
                     <div class="row">
                         <div class="col-md-6">
                             <dl class="row mb-0">
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-hash"></i> ID Patient :
+                                <dt class="col-sm-5 text-muted">ID Patient :
                                 </dt>
-                                <dd class="col-sm-7 fw-bold">@patient.Id</dd>
+                                <dd class="col-sm-7">@patient.Id</dd>
 
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-person-badge"></i> Prénom :
+                                <dt class="col-sm-5 text-muted">Prénom :
                                 </dt>
                                 <dd class="col-sm-7">@patient.Prénom</dd>
 
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-person-badge-fill"></i> Nom :
+                                <dt class="col-sm-5 text-muted">Nom :
                                 </dt>
                                 <dd class="col-sm-7">@patient.Nom</dd>
 
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-calendar-event"></i> Date de Naissance :
+                                <dt class="col-sm-5 text-muted">Date de Naissance :
                                 </dt>
                                 <dd class="col-sm-7">@patient.DateDeNaissance.ToString("dd/MM/yyyy")</dd>
                             </dl>
                         </div>
                         <div class="col-md-6">
                             <dl class="row mb-0">
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-cake2"></i> Âge :
+                                <dt class="col-sm-5 text-muted">Âge :
                                 </dt>
                                 <dd class="col-sm-7">@CalculateAge(patient.DateDeNaissance) ans</dd>
 
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-gender-ambiguous"></i> Genre :
+                                <dt class="col-sm-5 text-muted">Genre :
                                 </dt>
                                 <dd class="col-sm-7">@GetGenreLabel(patient.Genre)</dd>
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-geo-alt-fill"></i> Adresse :
+                                <dt class="col-sm-5 text-muted">Adresse :
                                 </dt>
                                 <dd class="col-sm-7">
                                     @if (!string.IsNullOrWhiteSpace(patient.AdressePostale))
@@ -175,8 +170,7 @@
                                         <span class="text-muted fst-italic">Non renseignée</span>
                                     }
                                 </dd>
-                                <dt class="col-sm-5 text-muted">
-                                    <i class="bi bi-phone-fill"></i> Téléphone :
+                                <dt class="col-sm-5 text-muted">Téléphone :
                                 </dt>
                                 <dd class="col-sm-7">
                                     @if (!string.IsNullOrWhiteSpace(patient.NuméroDeTéléphone))
@@ -228,20 +222,17 @@
                         @foreach (var note in notes.OrderByDescending(n => n.Date))
                         {
                             <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h6 class="mb-1">
-                                        <i class="bi bi-calendar-check text-success"></i>
-                                        @note.Date.ToString("dd/MM/yyyy")
-                                    </h6>
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditNote(note.Id!)">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteNote(note.Id!)">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="text-muted">@note.Date.ToString("dd/MM/yyyy") :</span>
+                                            <div>
+                                                <button class="btn btn-sm btn-warning me-1" @onclick="() => EditNote(note.Id!)">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteNote(note.Id!)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                 <p class="mb-0 text-break">@note.Contenu</p>
                             </div>
                         }
@@ -266,12 +257,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Lancer toutes les opérations en parallèle
+        // S'abonner aux changements
+        RefreshService.OnNoteChanged += OnNoteChangedHandler;
+        
         await Task.WhenAll(
             LoadPatient(),
             LoadNotes(),
             LoadRiskAssessment()
         );
+    }
+
+    private async void OnNoteChangedHandler()
+    {
+        await Task.WhenAll(
+            LoadNotes(),
+            LoadRiskAssessment()
+        );
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        RefreshService.OnNoteChanged -= OnNoteChangedHandler;
     }
 
     private async Task LoadPatient()
@@ -338,7 +345,7 @@
         return riskLevel switch
         {
             RiskLevel.None => "Aucun Risque",
-            RiskLevel.Borderline => "Risque Limité",
+            RiskLevel.Borderline => "Risque Limités",
             RiskLevel.InDanger => "Risque Élevé",
             RiskLevel.EarlyOnset => "Risque Très Élevé",
             _ => riskLevel.ToString()
@@ -465,8 +472,8 @@
                 var success = await NoteApiService.DeleteNoteAsync(noteId);
                 if (success)
                 {
-                    await LoadNotes();
-                    await LoadRiskAssessment(); // Recharger l'évaluation après suppression d'une note
+                    // Appeler le service de DataRefresh pour notifier le changement
+                    RefreshService.NotifyNoteChanged(Id);
                 }
             }
             catch (Exception ex)

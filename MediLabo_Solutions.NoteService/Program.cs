@@ -118,25 +118,27 @@ var app = builder.Build();
 
 app.UseResponseCompression();
 
-// SeedData uniquement en environnement Development
-if (app.Environment.IsDevelopment())
+// Création de l'index OpenSearch et indexation initiale des notes
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var services = scope.ServiceProvider;
+    
+    var noteSearchService = services.GetRequiredService<INoteSearchService>();
+    await noteSearchService.CreateIndexAsync();
+
+    // DataSeed uniquement en environnement Development
+    if (app.Environment.IsDevelopment())
     {
-        var services = scope.ServiceProvider;
-
-        var noteSearchService = services.GetRequiredService<INoteSearchService>();
-        await noteSearchService.CreateIndexAsync();
-
         var notesCollection = services.GetRequiredService<IMongoCollection<Note>>();
         await NoteDataSeed.SeedAsync(notesCollection);
+    }
 
-        var documentsCount = await noteSearchService.CountDocumentAsync();
-        if (documentsCount == 0)
-        {
-            var noteAppService = services.GetRequiredService<INoteAppService>();
-            await noteAppService.IndexAllNotesInSearchAsync();
-        }
+    // Indexation initiale des notes dans OpenSearch si l'index est vide
+    var documentsCount = await noteSearchService.CountDocumentAsync();
+    if (documentsCount == 0)
+    {
+        var noteAppService = services.GetRequiredService<INoteAppService>();
+        await noteAppService.IndexAllNotesInSearchAsync();
     }
 }
 

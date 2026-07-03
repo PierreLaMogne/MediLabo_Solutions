@@ -3,11 +3,11 @@
 
 <AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity?.Name!
-        <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
+        Vous êtes connecté !
+        <button class="nav-link btn btn-link" @onclick="BeginLogOut">Déconnexion</button>
     </Authorized>
     <NotAuthorized>
-        <a href="/login">Log in</a>
+        <a href="/login">Se connecter</a>
     </NotAuthorized>
 </AuthorizeView>
 

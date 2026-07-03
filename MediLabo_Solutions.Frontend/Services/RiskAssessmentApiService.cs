@@ -9,7 +9,9 @@ namespace MediLabo_Solutions.Frontend.Services
     {
         public async Task<DiabetesRiskAssessmentDto?> GetRiskAssessmentAsync(int patientId)
         {
-            var response = await httpClient.GetAsync($"api/riskassessment/{patientId}");
+            // Ajouter un timestamp pour forcer le rechargement et éviter le cache navigateur
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var response = await httpClient.GetAsync($"api/riskassessment/{patientId}?_t={timestamp}");
             await response.EnsureSuccessOrThrowAsync();
 
             var riskAssessment = await response.Content.ReadFromJsonAsync<DiabetesRiskAssessmentDto>(jsonOptions);
