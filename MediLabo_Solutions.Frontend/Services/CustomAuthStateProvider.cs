@@ -7,6 +7,10 @@ namespace MediLabo_Solutions.Frontend.Services
 {
     public class CustomAuthStateProvider(ILocalStorageService local) : AuthenticationStateProvider
     {
+        /// <summary>
+        /// Obtient l'état d'authentification actuel de l'utilisateur
+        /// </summary>
+        /// <returns></returns>
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var token = await local.GetItemAsStringAsync("authToken");
@@ -32,11 +36,17 @@ namespace MediLabo_Solutions.Frontend.Services
             return new AuthenticationState(user);
         }
 
+        /// <summary>
+        /// Notifie que l'état d'authentification a changé
+        /// </summary>
         public void NotifyAuthenticationStateChanged()
         {
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
-
+        
+        /// <summary>
+        /// Marque l'utilisateur comme déconnecté
+        /// </summary>
         public void MarkUserAsLoggedOut()
         {
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
@@ -44,6 +54,11 @@ namespace MediLabo_Solutions.Frontend.Services
             NotifyAuthenticationStateChanged(authState);
         }
 
+        /// <summary>
+        /// Vérifie si le token JWT est expiré en fonction de la claim "exp"
+        /// </summary>
+        /// <param name="claims">Les claims extraites du token JWT</param>
+        /// <returns>True si le token est expiré, sinon false</returns>
         private bool IsTokenExpired(IEnumerable<Claim> claims)
         {
             var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
