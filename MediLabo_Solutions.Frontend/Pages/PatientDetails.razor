@@ -450,9 +450,30 @@
         NavigationManager.NavigateTo($"/patients/edit/{Id}");
     }
 
-    private void DeletePatient()
+    private async Task DeletePatient()
     {
-        NavigationManager.NavigateTo($"/patients/delete/{Id}");
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Êtes-vous sûr de vouloir supprimer le patient {patient?.Prénom} {patient?.Nom} ?"))
+        {
+            try
+            {
+                var success = await PatientApiService.DeletePatientAsync(Id);
+                if (success)
+                {
+                    // Rediriger vers la liste des patients
+                    NavigationManager.NavigateTo("/patients");
+                }
+                else
+                {
+                    errorMessage = "Erreur lors de la suppression du patient.";
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Erreur lors de la suppression : {ex.Message}";
+                StateHasChanged();
+            }
+        }
     }
 
     private void AddNote()
