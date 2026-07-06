@@ -9,6 +9,12 @@ namespace MediLabo_Solutions.Frontend.Services
     {
         private const string TokenKey = "authToken";
 
+        /// <summary>
+        /// Tenter de se connecter avec le nom d'utilisateur et le mot de passe fournis
+        /// </summary>
+        /// <param name="username">Le nom d'utilisateur</param>
+        /// <param name="password">Le mot de passe</param>
+        /// <returns>Un booléen indiquant si la connexion a réussi</returns>
         public async Task<bool> LoginAsync(string username, string password)
         {
             try
@@ -39,7 +45,11 @@ namespace MediLabo_Solutions.Frontend.Services
                 return false;
             }
         }
-
+        
+        /// <summary>
+        /// Déconnecter l'utilisateur en supprimant le token localement et en mettant à jour l'état d'authentification
+        /// </summary>
+        /// <returns>Une tâche représentant l'opération asynchrone</returns>
         public async Task LogoutAsync()
         {
             // Toujours supprimer le token localement
@@ -52,11 +62,19 @@ namespace MediLabo_Solutions.Frontend.Services
             }
         }
 
+        /// <summary>
+        /// Récupérer le token d'authentification stocké localement
+        /// </summary>
+        /// <returns>Le token d'authentification ou null s'il n'existe pas</returns>
         public async Task<string?> GetTokenAsync()
         {
             return await local.GetItemAsStringAsync(TokenKey);
         }
 
+        /// <summary>
+        /// Vérifier si l'utilisateur est authentifié
+        /// </summary>
+        /// <returns>Un booléen indiquant si l'utilisateur est authentifié</returns>
         public async Task<bool> IsAuthenticatedAsync()
         {
             var token = await GetTokenAsync();
