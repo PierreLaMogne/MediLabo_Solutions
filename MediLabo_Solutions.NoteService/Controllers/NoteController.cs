@@ -41,7 +41,6 @@ namespace MediLabo_Solutions.NoteService.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateNote([FromRoute][Required] string id, [FromBody][Required] NoteDto noteDto)
         {
             noteDto.Id = id;
@@ -50,6 +49,7 @@ namespace MediLabo_Solutions.NoteService.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteNote([FromRoute][Required] string id)
         {
             var patientId = await appService.DeleteNoteAsync(id).ConfigureAwait(false);
@@ -58,7 +58,12 @@ namespace MediLabo_Solutions.NoteService.Controllers
             return Ok(new { PatientId = patientId });
         }
 
-        // Endpoint pour rechercher des termes déclencheurs dans les notes d'un patient
+        /// <summary>
+        /// Rechercher les termes déclencheurs dans les notes d'un patient donné
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient à diagnostiquer</param>
+        /// <param name="triggerTerms">Les termes déclencheurs à rechercher</param>
+        /// <returns>Une liste des termes déclencheurs identifiés dans les notes</returns>
         [HttpPost("search-triggers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchTriggerTerms(
