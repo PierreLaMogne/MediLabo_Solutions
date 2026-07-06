@@ -19,6 +19,7 @@ namespace MediLabo_Solutions.PatientService.Mappers
             };
         }
 
+        // Passage d'un objet Patient à un Dto PatientDto
         public static PatientDto ToListDto(Patient patient)
         {
             return new PatientDto
@@ -30,6 +31,7 @@ namespace MediLabo_Solutions.PatientService.Mappers
             };
         }
 
+        // Passage d'un Dto PatientDto à un objet Patient
         public static Patient ToEntity(PatientDto dto)
         {
             var patient = new Patient(dto.Prénom, dto.Nom, dto.DateDeNaissance, dto.Genre, dto.AdressePostale, dto.NuméroDeTéléphone);
