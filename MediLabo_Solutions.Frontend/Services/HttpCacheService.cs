@@ -7,6 +7,14 @@ namespace MediLabo_Solutions.Frontend.Services
         private readonly HashSet<string> _cacheKeys = new();
         private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+        /// <summary>
+        /// Créer ou récupérer une valeur du cache. Si la valeur n'existe pas, elle sera créée en utilisant la fonction factory fournie.
+        /// </summary>
+        /// <typeparam name="T">Le type de la valeur à mettre en cache</typeparam>
+        /// <param name="key">La clé du cache</param>
+        /// <param name="factory">La fonction pour créer la valeur si elle n'existe pas dans le cache</param>
+        /// <param name="absoluteExpiration">La durée d'expiration absolue de l'entrée du cache</param>
+        /// <returns>La valeur mise en cache ou créée</returns>
         public async Task<T?> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? absoluteExpiration = null)
         {
             if (cache.TryGetValue(key, out T? cachedValue))
