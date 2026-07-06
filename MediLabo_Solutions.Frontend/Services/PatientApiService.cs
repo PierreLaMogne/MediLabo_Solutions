@@ -13,6 +13,12 @@ namespace MediLabo_Solutions.Frontend.Services
         private const string CacheKeyPrefix = "patient:";
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
+        /// <summary>
+        /// Récupère tous les patients avec pagination
+        /// </summary>
+        /// <param name="pageNumber">Le numéro de la page à récupérer</param>
+        /// <param name="pageSize">Le nombre de patients par page</param>
+        /// <returns>Un objet PagedResult contenant les patients</returns>
         public async Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
             var cacheKey = $"{CacheKeyPrefix}all:page{pageNumber}:size{pageSize}";
@@ -45,6 +51,13 @@ namespace MediLabo_Solutions.Frontend.Services
             }, CacheDuration);
         }
 
+        /// <summary>
+        /// Récupère les patients par nom avec pagination
+        /// </summary>
+        /// <param name="name">Le nom du patient à rechercher</param>
+        /// <param name="pageNumber">Le numéro de la page à récupérer</param>
+        /// <param name="pageSize">Le nombre de patients par page</param>
+        /// <returns>Un objet PagedResult contenant les patients</returns>
         public async Task<PagedResult<PatientDto>> GetPatientByNameAsync(string name, int pageNumber = 1, int pageSize = 10)
         {
             var cacheKey = $"{CacheKeyPrefix}name:{name}:page{pageNumber}:size{pageSize}";
@@ -66,7 +79,7 @@ namespace MediLabo_Solutions.Frontend.Services
 
             var createdPatient = await response.Content.ReadFromJsonAsync<PatientDto>(jsonOptions);
             
-            // Invalider le cache après création
+            // Invalider le cache après création 
             cacheService.RemoveByPrefix(CacheKeyPrefix);
             
             return createdPatient ?? throw new InvalidOperationException("La création du patient a échoué.");
