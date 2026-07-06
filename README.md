@@ -4,7 +4,7 @@ Cette application est construite en .NET 10. Elle est composée de plusieurs ser
 
 MédiLabo Solutions requiert l'utilisation d'OpenSearch pour évaluer le risque de diabète.
 Ce service est directement intégrer au Docker-Compose de l'application.
-Après avoir lancé Docker Desktop, il est possible de construire le conteneur de l'application à partir du ichier docker-compose.yml via la commande PowerShell: docker-compose build
+Après avoir lancé Docker Desktop, il est possible de construire le conteneur de l'application à partir du fichier docker-compose.yml via la commande PowerShell: docker-compose build
 
 Il suffit ensuite d'utiliser cette image pour pouvoir accéder à l'application via l'adresse: http://localhost:8080/
 
