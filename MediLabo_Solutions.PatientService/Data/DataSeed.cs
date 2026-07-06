@@ -4,6 +4,10 @@ namespace MediLabo_Solutions.PatientService.Data
 {
     public class DataSeed
     {
+        /// <summary>
+        /// Méthode pour initialiser la base de données avec des patients de test
+        /// </summary>
+        /// <param name="context">Le contexte de la base de données</param>
         public static void Seed(PatientDbContext context)
         {
             if (context.Patients.Any()) return;
