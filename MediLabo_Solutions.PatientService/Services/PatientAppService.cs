@@ -7,7 +7,12 @@ namespace MediLabo_Solutions.PatientService.Services
 {
     public class PatientAppService(IPatientRepository repository) : IPatientAppService
     {
-        // ✅ OPTIMISATION GREEN CODE: Pagination déléguée au repository
+        /// <summary>
+        /// Récupérer tous les patients avec pagination
+        /// </summary>
+        /// <param name="pageNumber">Le numéro de la page à récupérer</param>
+        /// <param name="pageSize">Le nombre de patients par page</param>
+        /// <returns>Une liste de patients correspondant aux critères de pagination et le nombre total de patients</returns>
         public async Task<PagedResult<PatientDto>> GetAllPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
             var (patients, totalCount) = await repository.GetAllPatientsPaginatedAsync(pageNumber, pageSize).ConfigureAwait(false);
@@ -33,7 +38,13 @@ namespace MediLabo_Solutions.PatientService.Services
                 : throw new NotFoundException($@"Le patient avec l'identifiant {id} n'a pas été trouvé.");
         }
 
-        // ✅ OPTIMISATION GREEN CODE: Pagination déléguée au repository
+        /// <summary>
+        /// Récupérer les patients par nom avec pagination
+        /// </summary>
+        /// <param name="Name">Le nom des patients à rechercher</param>
+        /// <param name="pageNumber">Le numéro de la page à récupérer</param>
+        /// <param name="pageSize">Le nombre de patients par page</param>
+        /// <returns>Une liste de patients correspondant aux critères de recherche et le nombre total de patients</returns>
         public async Task<PagedResult<PatientDto>> GetPatientsByNameAsync(string Name, int pageNumber = 1, int pageSize = 10)
         {
             var (patients, totalCount) = await repository.GetPatientsByNamePaginatedAsync(Name, pageNumber, pageSize).ConfigureAwait(false);
