@@ -15,6 +15,12 @@ namespace MediLabo_Solutions.PatientService.Controllers
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public class PatientController(IPatientAppService service) : ControllerBase
     {
+        /// <summary>
+        /// Récupérer tous les patients avec pagination
+        /// </summary>
+        /// <param name="pageNumber">Le numéro de la page à récupérer</param>
+        /// <param name="pageSize">Le nombre de patients par page</param>
+        /// <returns>Une liste de patients correspondant aux critères de pagination</returns>
         [HttpGet]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllPatients([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
@@ -31,6 +37,13 @@ namespace MediLabo_Solutions.PatientService.Controllers
             return Ok(patient);
         }
 
+        /// <summary>
+        /// Récupérer les patients par nom avec pagination
+        /// </summary>
+        /// <param name="nom">Le nom du patient à rechercher</param>
+        /// <param name="pageNumber">Le numéro de la page à récupérer</param>
+        /// <param name="pageSize">Le nombre de patients par page</param>
+        /// <returns>Une liste de patients correspondant au nom spécifié</returns>
         [HttpGet("name/{nom}")]
         [ProducesResponseType(typeof(List<PatientDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPatientByName([FromRoute][Required] string nom, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
