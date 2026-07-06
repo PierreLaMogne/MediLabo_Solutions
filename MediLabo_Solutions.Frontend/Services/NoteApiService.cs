@@ -13,6 +13,11 @@ public class NoteApiService(
     private const string CacheKeyPrefix = "note:";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
+    /// <summary>
+    /// Récupère toutes les notes associées à un patient donné
+    /// </summary>
+    /// <param name="patientId">L'identifiant du patient</param>
+    /// <returns>Une collection de notes associées au patient</returns>
     public async Task<IEnumerable<NoteDto>> GetNotesByPatientIdAsync(int patientId)
     {
         var cacheKey = $"{CacheKeyPrefix}patient:{patientId}";
@@ -69,14 +74,20 @@ public class NoteApiService(
         }
 
         await response.EnsureSuccessOrThrowAsync();
-        
-        // Invalider le cache
+
+        // Invalider le cache pour cette note et pour le patient associé
         cacheService.Remove($"{CacheKeyPrefix}id:{id}");
         cacheService.Remove($"{CacheKeyPrefix}patient:{note.PatientId}");
         
         return true;
     }
 
+    /// <summary>
+    /// Supprime une note par son identifiant
+    /// Récupère le PatientId depuis la réponse pour une invalidation ciblée du cache
+    /// </summary>
+    /// <param name="id">L'identifiant de la note à supprimer</param>
+    /// <returns>Un booléen indiquant si la suppression a réussi</returns>
     public async Task<bool> DeleteNoteAsync(string id)
     {
         var response = await httpClient.DeleteAsync($"api/notes/{id}");
