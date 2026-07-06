@@ -147,6 +147,7 @@ else
         await LoadPatients();
     }
 
+    // Chargement des patients
     private async Task LoadPatients()
     {
         isLoading = true;
@@ -166,6 +167,7 @@ else
         }
     }
 
+    // Méthodes de pagination
     private async Task GoToPage(int page)
     {
         if (page < 1 || (pagedPatients != null && page > pagedPatients.TotalPages))
@@ -204,6 +206,7 @@ else
         return Math.Min(end, pagedPatients.TotalPages);
     }
 
+    // Méthodes pour créer, consulter, modifier et supprimer un patient
     private void CreatePatient()
     {
         NavigationManager.NavigateTo("/patients/create");
