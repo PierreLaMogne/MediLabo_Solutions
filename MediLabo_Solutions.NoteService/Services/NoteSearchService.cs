@@ -9,13 +9,18 @@ namespace MediLabo_Solutions.NoteService.Services
         IConfiguration configuration) : INoteSearchService
     {
         private string indexName = configuration["OpenSearchSettings:IndexName"] ?? "notes";
+
+        /// <summary>
+        /// Crée l'index dans OpenSearch avec les paramètres et mappings spécifiés si l'index n'existe pas déjà
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task CreateIndexAsync()
         {
             var indexExists = await openSearchClient.Indices.ExistsAsync(indexName).ConfigureAwait(false);
             if (indexExists.Exists)
                 return;
 
-            // Créer l'index uniquement s'il n'existe pas
             var createIndexResponse = await openSearchClient.Indices.CreateAsync(indexName, c => c
                 .Settings(s => s
                     .NumberOfShards(1)
@@ -73,6 +78,12 @@ namespace MediLabo_Solutions.NoteService.Services
             }
         }
 
+        /// <summary>
+        /// Recherche les termes déclencheurs pour un patient donné dans l'index OpenSearch et retourne les termes trouvés
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient pour lequel rechercher les termes déclencheurs</param>
+        /// <param name="triggerTerms">La liste des termes déclencheurs à rechercher</param>
+        /// <returns>Un ensemble de termes déclencheurs trouvés pour le patient</returns>
         public async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId, IEnumerable<string> triggerTerms)
         {
             var triggerTermsList = triggerTerms.ToList();
@@ -107,6 +118,7 @@ namespace MediLabo_Solutions.NoteService.Services
             );
         }
 
+        // Indexation d'une note dans OpenSearch
         public async Task IndexNoteAsync(NoteDto note)
         {
             var indexResponse = await openSearchClient.IndexAsync(note, idx => idx
@@ -121,6 +133,7 @@ namespace MediLabo_Solutions.NoteService.Services
             }
         }
 
+        // Indexation d'un ensemble de notes dans OpenSearch en une seule opération
         public async Task IndexNotesAsync(IEnumerable<NoteDto> notes)
         {
             var notesList = notes.ToList();
@@ -137,7 +150,8 @@ namespace MediLabo_Solutions.NoteService.Services
                 throw new Exception($"Erreur lors de l'indexation en masse: {bulkIndexResponse.ServerError?.Error?.Reason}");
             }
         }
-
+        
+        // Suppression d'une note de l'index OpenSearch
         public async Task DeleteNoteFromIndexAsync(string noteId)
         {
             var deleteResponse = await openSearchClient.DeleteAsync<NoteDto>(noteId, d => d
@@ -156,7 +170,8 @@ namespace MediLabo_Solutions.NoteService.Services
                 throw new Exception($"Erreur lors de la suppression de la note de l'index: {deleteResponse.ServerError?.Error?.Reason}");
             }
         }
-        
+
+        // Suppression de l'index OpenSearch si celui-ci existe
         public async Task DeleteIndexAsync()
         {
             var existsResponse = await openSearchClient.Indices.ExistsAsync(indexName).ConfigureAwait(false);
@@ -166,6 +181,7 @@ namespace MediLabo_Solutions.NoteService.Services
             }
         }
 
+        // Comptage du nombre de documents dans l'index OpenSearch
         public async Task<long> CountDocumentAsync()
         {
             var countResponse = await openSearchClient.CountAsync<NoteDto>(c => c.Index(indexName)).ConfigureAwait(false);
