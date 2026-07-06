@@ -224,6 +224,7 @@
     private int pageSize = 10;
     private const int MaxPagesToShow = 5;
 
+    // Méthodes pour rechercher des patients
     private async Task SearchPatients()
     {
         if (!ValidateSearch())
@@ -276,6 +277,43 @@
         }
     }
 
+    private bool ValidateSearch()
+    {
+        if (searchType == "name" && string.IsNullOrWhiteSpace(searchName))
+        {
+            errorMessage = "Veuillez entrer un nom ou un prénom.";
+            return false;
+        }
+
+        if (searchType == "id" && searchId <= 0)
+        {
+            errorMessage = "Veuillez entrer un identifiant valide (supérieur à 0).";
+            return false;
+        }
+
+        return true;
+    }
+
+    private void ClearSearch()
+    {
+        searchName = string.Empty;
+        searchId = 0;
+        searchResults = null;
+        hasSearched = false;
+        errorMessage = null;
+        currentPage = 1;
+        pageSize = 10;
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchPatients();
+        }
+    }
+
+    // Méthodes de pagination
     private async Task GoToPage(int page)
     {
         if (page < 1 || (searchResults != null && page > searchResults.TotalPages))
@@ -313,43 +351,8 @@
         var end = GetStartPage() + MaxPagesToShow - 1;
         return Math.Min(end, searchResults.TotalPages);
     }
-
-    private bool ValidateSearch()
-    {
-        if (searchType == "name" && string.IsNullOrWhiteSpace(searchName))
-        {
-            errorMessage = "Veuillez entrer un nom ou un prénom.";
-            return false;
-        }
-
-        if (searchType == "id" && searchId <= 0)
-        {
-            errorMessage = "Veuillez entrer un identifiant valide (supérieur à 0).";
-            return false;
-        }
-
-        return true;
-    }
-
-    private void ClearSearch()
-    {
-        searchName = string.Empty;
-        searchId = 0;
-        searchResults = null;
-        hasSearched = false;
-        errorMessage = null;
-        currentPage = 1;
-        pageSize = 10;
-    }
-
-    private async Task HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            await SearchPatients();
-        }
-    }
-
+    
+    // Méthodes de formatage et de calcul pour l'affichage
     private string GetGenreLabel(string genre)
     {
         return genre switch
@@ -374,6 +377,7 @@
         return age;
     }
 
+    // Méthodes pour créer, consulter et modifier un patient
     private void ViewPatient(int id)
     {
         NavigationManager.NavigateTo($"/patients/{id}");

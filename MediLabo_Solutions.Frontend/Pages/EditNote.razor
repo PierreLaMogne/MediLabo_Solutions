@@ -179,6 +179,7 @@
         }
     }
 
+    // Gérer la soumission du formulaire
     private async Task HandleValidSubmit()
     {
         isSaving = true;
@@ -216,12 +217,14 @@
         }
     }
 
+    // Redirige vers la page du patient après l'enregistrement de la note
     private async Task SaveNote()
     {
         RefreshService.NotifyNoteChanged(PatientId);
         NavigationManager.NavigateTo($"/patients/{PatientId}");
     }
 
+    // Redirige vers la page du patient sans enregistrer
     private void GoBack()
     {
         NavigationManager.NavigateTo($"/patients/{PatientId}");

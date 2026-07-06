@@ -16,6 +16,11 @@ namespace MediLabo_Solutions.AuthService.Controllers
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public class AuthController(IAuthAppService authAppService) : ControllerBase
     {
+        /// <summary>
+        /// Authentifier un utilisateur et générer un token JWT
+        /// </summary>
+        /// <param name="request">Les informations de connexion de l'utilisateur</param>
+        /// <returns>Un token JWT si l'authentification réussit</returns>
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)

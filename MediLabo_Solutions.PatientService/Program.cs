@@ -104,9 +104,6 @@ if (app.Environment.IsDevelopment())
 // Middleware de gestion des exceptions
 app.UseGlobalExceptionHandler();
 
-// Configuration HTTPS redirection si nécessaire
-// app.UseHttpsRedirection(); // Décommentez si vous voulez forcer HTTPS
-
 app.UseRouting();
 
 app.UseAuthentication();

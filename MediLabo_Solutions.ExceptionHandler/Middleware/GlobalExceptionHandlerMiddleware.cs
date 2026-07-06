@@ -8,6 +8,7 @@ namespace MediLabo_Solutions.ExceptionHandler.Middleware
 {
     public class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
+
         public async Task InvokeAsync(HttpContext context)
         {
             try
@@ -20,6 +21,12 @@ namespace MediLabo_Solutions.ExceptionHandler.Middleware
             }
         }
 
+        /// <summary>
+        /// Gère les exceptions pour renvoyer un objet ProblemDetails approprié au client.
+        /// </summary>
+        /// <param name="context">Le contexte HTTP de la requête en cours</param>
+        /// <param name="exception">L'exception à gérer</param>
+        /// <returns></returns>
         public async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             var problemDetails = exception switch
@@ -83,6 +90,7 @@ namespace MediLabo_Solutions.ExceptionHandler.Middleware
             await context.Response.WriteAsJsonAsync(problemDetails, options);
         }
 
+        // Création d'un objet ProblemDetails standardisé pour la réponse HTTP
         private static ProblemDetails CreateProblemDetails(
             HttpContext context,
             HttpStatusCode statusCode,

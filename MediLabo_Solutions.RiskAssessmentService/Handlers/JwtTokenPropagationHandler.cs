@@ -1,7 +1,7 @@
 namespace MediLabo_Solutions.RiskAssessmentService.Handlers;
 
 /// <summary>
-/// Handler pour propager le token JWT d'authentification aux services en aval.
+/// Handler pour propager le token JWT d'authentification aux services en aval
 /// </summary>
 public class JwtTokenPropagationHandler : DelegatingHandler
 {

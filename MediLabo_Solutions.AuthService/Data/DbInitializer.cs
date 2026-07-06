@@ -4,6 +4,11 @@ namespace MediLabo_Solutions.AuthService.Data
 {
     public class DbInitializer
     {
+        /// <summary>
+        /// Mise en place d'un utilisateur par défaut avec le rôle "Praticien" si aucun utilisateur n'existe dans la base de données.
+        /// </summary>
+        /// <param name="serviceProvider">Le fournisseur de services pour accéder aux gestionnaires d'utilisateurs et de rôles</param>
+        /// <returns></returns>
         public static async Task InitializeUserAsync(IServiceProvider serviceProvider)
         {
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();

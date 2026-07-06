@@ -14,6 +14,12 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
 
         private static readonly List<string> TriggerTermsList = TriggerTerms.ToList();
 
+        /// <summary>
+        /// Évaluation du risque de diabète pour un patient donné en fonction de son âge, de son genre et des termes déclencheurs identifiés dans ses notes.
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient</param>
+        /// <returns>Un DTO contenant les résultats de l'évaluation du risque de diabète</returns>
+        /// <exception cref="NotFoundException">Si le patient n'est pas trouvé</exception>
         public async Task<DiabetesRiskAssessmentDto> AssessDiabeteRiskAsync(int patientId)
         {
             // Récupérer les informations du patient depuis le service PatientService
@@ -58,6 +64,11 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             return null;
         }
 
+        /// <summary>
+        /// Rechercher les termes déclencheurs dans les notes du patient via OpenSearch dans le service NoteService
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient</param>
+        /// <returns>Un ensemble de termes déclencheurs identifiés</returns>
         private async Task<HashSet<string>> SearchTriggerTermsAsync(int patientId)
         {
             var client = httpClientFactory.CreateClient("NoteService");
@@ -72,6 +83,13 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
             return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Logique de détermination du niveau de risque en fonction de l'âge, du genre et du nombre de termes déclencheurs identifiés
+        /// </summary>
+        /// <param name="age">L'âge du patient</param>
+        /// <param name="genre">Le genre du patient</param>
+        /// <param name="triggerTermsCount">Le nombre de termes déclencheurs identifiés</param>
+        /// <returns>Le niveau de risque de diabète</returns>
         private RiskLevel DetermineRiskLevel(int age, string genre, int triggerTermsCount)
         {
             // Pas de risque pour 0 ou 1 terme déclencheur trouvé

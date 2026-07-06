@@ -5,6 +5,11 @@ namespace MediLabo_Solutions.NoteService.Data
 {
     public class NoteDataSeed
     {
+        /// <summary>
+        /// Méthode pour initialiser les données de la collection de notes dans la base de données MongoDB
+        /// </summary>
+        /// <param name="notesCollection">La collection de notes dans la base de données MongoDB</param>
+        /// <returns></returns>
         public static async Task SeedAsync(IMongoCollection<Note> notesCollection)
         {
             // Vérifier si des notes existent déjà

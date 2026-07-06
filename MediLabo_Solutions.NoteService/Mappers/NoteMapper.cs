@@ -5,6 +5,7 @@ namespace MediLabo_Solutions.NoteService.Mappers
 {
     public static class NoteMapper
     {
+        // Passage d'une entité Note à un DTO NoteDto
         public static NoteDto ToDto(Note note)
         {
             return new NoteDto
@@ -16,6 +17,7 @@ namespace MediLabo_Solutions.NoteService.Mappers
             };
         }
 
+        // Passage d'un DTO NoteDto à une entité Note
         public static Note ToEntity(NoteDto dto)
         {
             var note = new Note(dto.PatientId, dto.Contenu, dto.Date)

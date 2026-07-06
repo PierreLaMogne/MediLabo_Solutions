@@ -40,20 +40,19 @@ namespace MediLabo_Solutions.NoteService.Repositories
 
         }
 
-        public async Task<bool> DeleteNoteAsync(string id)
+        /// <summary>
+        /// Supprimer une note par son identifiant et renvoyer la note supprimée
+        /// </summary>
+        /// <param name="id">L'identifiant de la note à supprimer</param>
+        /// <returns>La note supprimée, ou null si aucune note n'a été trouvée</returns>
+        public async Task<Note?> DeleteAndReturnAsync(string id)
         {
-            var result = await notes.DeleteOneAsync(n => n.Id == id).ConfigureAwait(false);
-            return result.IsAcknowledged && result.DeletedCount > 0;
+            return await notes.FindOneAndDeleteAsync(n => n.Id == id).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<int>> GetAllPatientIdsAsync()
         {
             return await notes.Distinct<int>("PatientId", FilterDefinition<Note>.Empty).ToListAsync().ConfigureAwait(false);
-        }
-
-        public async Task<Note?> DeleteAndReturnAsync(string id)
-        {
-            return await notes.FindOneAndDeleteAsync(n => n.Id == id).ConfigureAwait(false);
         }
     }
 }

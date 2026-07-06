@@ -281,6 +281,7 @@
         RefreshService.OnNoteChanged -= OnNoteChangedHandler;
     }
 
+    // Chargement des données, des notes et de l'évaluation du risque diabétique du patient
     private async Task LoadPatient()
     {
         isLoadingPatient = true;
@@ -340,12 +341,13 @@
         }
     }
 
+    // Méthodes de formatage et de calcul pour l'affichage
     private string GetRiskLevelLabel(RiskLevel riskLevel)
     {
         return riskLevel switch
         {
             RiskLevel.None => "Aucun Risque",
-            RiskLevel.Borderline => "Risque Limités",
+            RiskLevel.Borderline => "Risque Limité",
             RiskLevel.InDanger => "Risque Élevé",
             RiskLevel.EarlyOnset => "Risque Très Élevé",
             _ => riskLevel.ToString()
@@ -442,6 +444,7 @@
         return age;
     }
 
+    // Méthodes de navigation pour les actions
     private void EditPatient()
     {
         NavigationManager.NavigateTo($"/patients/edit/{Id}");
