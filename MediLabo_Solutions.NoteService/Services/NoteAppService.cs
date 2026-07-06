@@ -54,11 +54,13 @@ namespace MediLabo_Solutions.NoteService.Services
             return deletedNote.PatientId;
         }
 
+        // Récupération de tous les identifiants des patients
         public async Task<IEnumerable<int>> GetAllPatientIdsAsync()
         {
             return await repo.GetAllPatientIdsAsync().ConfigureAwait(false);
         }
 
+        // Indexation de toutes les notes dans le moteur de recherche
         public async Task IndexAllNotesInSearchAsync()
         {
             var allNotes = await repo.GetAllNotesAsync().ConfigureAwait(false);
