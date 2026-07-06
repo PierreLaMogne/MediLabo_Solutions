@@ -10,6 +10,13 @@ namespace MediLabo_Solutions.AuthService.Services
 {
     public class AuthAppService(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration configuration) : IAuthAppService
     {
+        /// <summary>
+        /// Authentifie un utilisateur en vérifiant ses informations d'identification et génère un token JWT si l'authentification réussit
+        /// </summary>
+        /// <param name="request">Les informations de connexion de l'utilisateur</param>
+        /// <returns>Un token JWT si l'authentification réussit</returns>
+        /// <exception cref="BadRequestException">Les informations de connexion sont invalides ou manquantes</exception>
+        /// <exception cref="UnauthorizedException">L'utilisateur n'est pas autorisé à se connecter</exception>
         public async Task<AuthResponse> AuthenticateAsync(LoginRequest request)
         {
             // Validation des entrées
@@ -19,7 +26,7 @@ namespace MediLabo_Solutions.AuthService.Services
             // Recherche de l'utilisateur
             var user = await userManager.FindByNameAsync(request.Username).ConfigureAwait(false);
             if (user == null)
-                throw new UnauthorizedException("Nom d'utilisateur ou mot de passe incorrect.");
+                throw new BadRequestException("Nom d'utilisateur ou mot de passe incorrect.");
 
             // Vérification du verrouillage
             if (await userManager.IsLockedOutAsync(user).ConfigureAwait(false))
@@ -38,7 +45,7 @@ namespace MediLabo_Solutions.AuthService.Services
                     var lockoutEnd = await userManager.GetLockoutEndDateAsync(user).ConfigureAwait(false);
                     throw new UnauthorizedException($"Trop de tentatives échouées. Compte bloqué jusqu'à {lockoutEnd?.LocalDateTime:HH:mm}.");
                 }
-                throw new UnauthorizedException("Nom d'utilisateur ou mot de passe incorrect.");
+                throw new BadRequestException("Nom d'utilisateur ou mot de passe incorrect.");
             }
 
             // Récupération du rôle de l'utilisateur
@@ -55,6 +62,12 @@ namespace MediLabo_Solutions.AuthService.Services
             };
         }
 
+        /// <summary>
+        /// Génère un token JWT pour l'utilisateur donné avec ses rôles
+        /// </summary>
+        /// <param name="user">L'utilisateur pour lequel générer le token</param>
+        /// <param name="roles">Les rôles de l'utilisateur</param>
+        /// <returns>Un token JWT</returns>
         private JwtSecurityToken GenerateJwtToken(IdentityUser user, IList<string> roles)
         {
             var claims = new List<Claim>
