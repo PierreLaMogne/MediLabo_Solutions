@@ -7,6 +7,11 @@ namespace MediLabo_Solutions.Frontend.Services
 {
     public class RiskAssessmentApiService(HttpClient httpClient, JsonSerializerOptions jsonOptions) : IRiskAssessmentApiService
     {
+        /// <summary>
+        /// Récupére l'évaluation du risque de diabète pour un patient donné
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient</param>
+        /// <returns>Un objet DiabetesRiskAssessmentDto contenant l'évaluation du risque de diabète</returns>
         public async Task<DiabetesRiskAssessmentDto?> GetRiskAssessmentAsync(int patientId)
         {
             // Ajouter un timestamp pour forcer le rechargement et éviter le cache navigateur
