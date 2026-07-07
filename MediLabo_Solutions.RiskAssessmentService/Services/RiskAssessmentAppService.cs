@@ -93,11 +93,11 @@ namespace MediLabo_Solutions.RiskAssessmentService.Services
         private RiskLevel DetermineRiskLevel(int age, string genre, int triggerTermsCount)
         {
             // Pas de risque pour 0 ou 1 terme déclencheur trouvé
-            if (triggerTermsCount <= 1)
+            if (triggerTermsCount < 2)
                 return RiskLevel.None;
 
             // Cas pour les patients de plus de 30 ans
-            if (age > 30)
+            if (age >= 30)
             {
                 if (triggerTermsCount >= 2 && triggerTermsCount < 6)
                     return RiskLevel.Borderline;
