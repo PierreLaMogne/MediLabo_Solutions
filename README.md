@@ -11,5 +11,5 @@ Il suffit ensuite d'utiliser cette image pour pouvoir accéder à l'application 
 L'application comporte un utilisateur unique dont vous aurez besoin pour accéder à l'ensemble des fonctions de l'application.
 Les informations de connexion sont:
   - Nom d'utilisateur : Medilabo_admin
-  - Medilabo2026!
+  - Mot de passe: Medilabo2026!
 
