@@ -113,34 +113,38 @@ using (var scope = app.Services.CreateScope())
         {
             var context = services.GetRequiredService<PatientDbContext>();
             
-            logger.LogInformation("Tentative {Attempt}/{MaxRetries} - Vérification de la connexion à la base de données...", i + 1, maxRetries);
+            logger.LogInformation("Tentative {Attempt}/{MaxRetries} - Initialisation de la base de données...", i + 1, maxRetries);
             
-            // Test de connexion
-            await context.Database.CanConnectAsync();
-            logger.LogInformation("Connexion à la base de données établie.");
-            
-            // Appliquer les migrations
-            logger.LogInformation("Application des migrations...");
+            // Appliquer toutes les migrations (créera la base si nécessaire)
             await context.Database.MigrateAsync();
             logger.LogInformation("Migrations appliquées avec succès.");
+            
+            // Vérifier que la connexion fonctionne
+            var canConnect = await context.Database.CanConnectAsync();
+            if (!canConnect)
+            {
+                throw new Exception("Impossible de se connecter à la base de données après migration.");
+            }
+            
+            logger.LogInformation("Connexion à la base de données vérifiée.");
             
             // DataSeed uniquement en environnement Development
             if (app.Environment.IsDevelopment())
             {
                 logger.LogInformation("Initialisation des données de test...");
                 await DataSeed.SeedAsync(context);
-                logger.LogInformation("Base de données initialisée avec succès.");
+                logger.LogInformation("Données de test initialisées avec succès.");
             }
             
             break; // Succès, sortir de la boucle
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Tentative {Attempt}/{MaxRetries} - Échec.", i + 1, maxRetries);
+            logger.LogWarning(ex, "Tentative {Attempt}/{MaxRetries} - Échec de l'initialisation.", i + 1, maxRetries);
             
             if (i == maxRetries - 1)
             {
-                logger.LogError("Impossible de se connecter à la base de données après {MaxRetries} tentatives.", maxRetries);
+                logger.LogError(ex, "Impossible d'initialiser la base de données après {MaxRetries} tentatives.", maxRetries);
                 throw;
             }
             
