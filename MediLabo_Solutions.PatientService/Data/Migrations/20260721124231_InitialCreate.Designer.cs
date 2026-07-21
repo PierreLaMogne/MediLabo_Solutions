@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MediLabo_Solutions.PatientService.Data.Migrations
 {
     [DbContext(typeof(PatientDbContext))]
-    [Migration("20260611165454_InitialPatientCreate")]
-    partial class InitialPatientCreate
+    [Migration("20260721124231_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -2,10 +2,11 @@
 using MediLabo_Solutions.PatientService.Mappers;
 using MediLabo_Solutions.Shared.Models;
 using MediLabo_Solutions.PatientService.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace MediLabo_Solutions.PatientService.Services
 {
-    public class PatientAppService(IPatientRepository repository) : IPatientAppService
+    public class PatientAppService(IPatientRepository repository, INoteServiceClient noteServiceClient, ILogger<PatientAppService> logger) : IPatientAppService
     {
         /// <summary>
         /// Récupérer tous les patients avec pagination
@@ -81,11 +82,36 @@ namespace MediLabo_Solutions.PatientService.Services
             return PatientMapper.ToDto(updatedPatient!);
         }
 
+        /// <summary>
+        /// Supprimer un patient et ses notes associées
+        /// </summary>
+        /// <param name="id">L'identifiant du patient à supprimer</param>
+        /// <returns>Un booléen indiquant si la suppression a réussi</returns>
+        /// <exception cref="NotFoundException">Si le patient n'a pas été trouvé</exception>
         public async Task<bool> DeletePatientAsync(int id)
         {
-            return await repository.DeletePatientAsync(id).ConfigureAwait(false)
-                ? true
-                : throw new NotFoundException($@"Le patient avec l'identifiant {id} n'a pas été trouvé.");
+            // Vérifier que le patient existe
+            var patient = await repository.GetPatientByIdAsync(id).ConfigureAwait(false);
+            if (patient == null)
+            {
+                throw new NotFoundException($@"Le patient avec l'identifiant {id} n'a pas été trouvé.");
+            }
+
+            // Supprimer les notes associées au patient sans bloquer la suppression du patient en cas d'échec    
+            try
+            {
+                var deletedNotesCount = await noteServiceClient.DeleteNotesByPatientIdAsync(id).ConfigureAwait(false);
+                logger.LogInformation("Suppression de {Count} note(s) pour le patient {PatientId}", deletedNotesCount, id);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Impossible de supprimer les notes pour le patient {PatientId}. Poursuite de la suppression du patient.", id);
+                // On continue même si la suppression des notes échoue
+            }
+
+            // Supprimer le patient
+            var result = await repository.DeletePatientAsync(id).ConfigureAwait(false);
+            return result;
         }
     }
 }

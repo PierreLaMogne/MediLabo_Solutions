@@ -11,5 +11,6 @@ namespace MediLabo_Solutions.NoteService.Services
         Task<int?> DeleteNoteAsync(string id);
         Task<IEnumerable<int>> GetAllPatientIdsAsync();
         Task IndexAllNotesInSearchAsync();
+        Task<long> DeleteNotesByPatientIdAsync(int patientId);
     }
 }
