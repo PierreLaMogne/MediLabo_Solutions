@@ -131,12 +131,12 @@ using (var scope = app.Services.CreateScope())
             // DataSeed uniquement en environnement Development
             if (app.Environment.IsDevelopment())
             {
-                logger.LogInformation("Initialisation des données de test...");
-                await DataSeed.SeedAsync(context);
-                logger.LogInformation("Données de test initialisées avec succès.");
+                logger.LogInformation("Vérification de la nécessité de l'initialisation des données de test...");
+                await DataSeed.SeedAsync(context, logger);
+                logger.LogInformation("✅ Initialisation des données de test terminée.");
             }
             
-            break; // Succès, sortir de la boucle
+            break;
         }
         catch (Exception ex)
         {
