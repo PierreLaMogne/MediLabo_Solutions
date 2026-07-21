@@ -54,5 +54,16 @@ namespace MediLabo_Solutions.NoteService.Repositories
         {
             return await notes.Distinct<int>("PatientId", FilterDefinition<Note>.Empty).ToListAsync().ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Supprimer toutes les notes associées à un patient
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient</param>
+        /// <returns>Le nombre de notes supprimées</returns>
+        public async Task<long> DeleteNotesByPatientIdAsync(int patientId)
+        {
+            var result = await notes.DeleteManyAsync(n => n.PatientId == patientId).ConfigureAwait(false);
+            return result.DeletedCount;
+        }
     }
 }

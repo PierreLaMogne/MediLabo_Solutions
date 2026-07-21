@@ -59,6 +59,19 @@ namespace MediLabo_Solutions.NoteService.Controllers
         }
 
         /// <summary>
+        /// Supprimer toutes les notes associées à un patient
+        /// </summary>
+        /// <param name="patientId">L'identifiant du patient</param>
+        /// <returns>Le nombre de notes supprimées</returns>
+        [HttpDelete("by-patient/{patientId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> DeleteNotesByPatientId([FromRoute][Range(1, int.MaxValue)] int patientId)
+        {
+            var deletedCount = await appService.DeleteNotesByPatientIdAsync(patientId).ConfigureAwait(false);
+            return Ok(new { DeletedCount = deletedCount });
+        }
+
+        /// <summary>
         /// Rechercher les termes déclencheurs dans les notes d'un patient donné
         /// </summary>
         /// <param name="patientId">L'identifiant du patient à diagnostiquer</param>
