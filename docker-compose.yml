@@ -1,28 +1,4 @@
 services:
-  # API Gateway (Ocelot)
-  apigateway:
-    build:
-      context: .
-      dockerfile: MediLabo_Solutions.APIGateway/Dockerfile
-    container_name: medilabo-apigateway
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
-      - Jwt__Issuer=Medilabo_Solutions_API
-      - Jwt__Audience=Medilabo_Solutions_Clients
-      - Jwt__ExpireMinutes=20
-    ports:
-      - "5000:8080"
-    depends_on:
-      - authservice
-      - patientservice
-      - noteservice
-      - riskassessmentservice
-    networks:
-      - medilabo-network
-    restart: unless-stopped
-    
   # Base de données SQL Server (partagée par AuthService et PatientService)
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -201,7 +177,29 @@ services:
       - medilabo-network
     restart: unless-stopped
 
-
+  # API Gateway (Ocelot)
+  apigateway:
+    build:
+      context: .
+      dockerfile: MediLabo_Solutions.APIGateway/Dockerfile
+    container_name: medilabo-apigateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - Jwt__Key=Medilabo_Solutions_Secret_Key_1234567890
+      - Jwt__Issuer=Medilabo_Solutions_API
+      - Jwt__Audience=Medilabo_Solutions_Clients
+      - Jwt__ExpireMinutes=20
+    ports:
+      - "5000:8080"
+    depends_on:
+      - authservice
+      - patientservice
+      - noteservice
+      - riskassessmentservice
+    networks:
+      - medilabo-network
+    restart: unless-stopped
 
   # Frontend Blazor WebAssembly
   frontend:

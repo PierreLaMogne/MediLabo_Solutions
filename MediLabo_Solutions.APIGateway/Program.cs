@@ -55,7 +55,7 @@ builder.Services.AddOcelot()
     .AddPolly();
 
 // CORS si nécessaire
-builder.Services.AddCors(options =>
+/*builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
@@ -64,6 +64,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+*/
 
 var app = builder.Build();
 
