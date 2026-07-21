@@ -98,30 +98,54 @@ var app = builder.Build();
 
 app.UseResponseCompression();
 
-// DataSeed uniquement en environnement Development
-if (app.Environment.IsDevelopment())
+// Appliquer les migrations au démarrage (pour tous les environnements)
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    
+    var maxRetries = 10;
+    var delay = TimeSpan.FromSeconds(5);
+    
+    for (int i = 0; i < maxRetries; i++)
     {
-        var services = scope.ServiceProvider;
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        
         try
         {
             var context = services.GetRequiredService<PatientDbContext>();
             
-            logger.LogInformation("Application des migrations de la base de données...");
+            logger.LogInformation("Tentative {Attempt}/{MaxRetries} - Vérification de la connexion à la base de données...", i + 1, maxRetries);
+            
+            // Test de connexion
+            await context.Database.CanConnectAsync();
+            logger.LogInformation("Connexion à la base de données établie.");
+            
+            // Appliquer les migrations
+            logger.LogInformation("Application des migrations...");
             await context.Database.MigrateAsync();
+            logger.LogInformation("Migrations appliquées avec succès.");
             
-            logger.LogInformation("Initialisation des données de test...");
-            await DataSeed.SeedAsync(context);
+            // DataSeed uniquement en environnement Development
+            if (app.Environment.IsDevelopment())
+            {
+                logger.LogInformation("Initialisation des données de test...");
+                await DataSeed.SeedAsync(context);
+                logger.LogInformation("Base de données initialisée avec succès.");
+            }
             
-            logger.LogInformation("Base de données initialisée avec succès.");
+            break; // Succès, sortir de la boucle
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Une erreur s'est produite lors de l'initialisation de la base de données.");
-            // L'application continue même si le seed échoue
+            logger.LogWarning(ex, "Tentative {Attempt}/{MaxRetries} - Échec.", i + 1, maxRetries);
+            
+            if (i == maxRetries - 1)
+            {
+                logger.LogError("Impossible de se connecter à la base de données après {MaxRetries} tentatives.", maxRetries);
+                throw;
+            }
+            
+            logger.LogInformation("Nouvelle tentative dans {Delay} secondes...", delay.TotalSeconds);
+            await Task.Delay(delay);
         }
     }
 }
