@@ -85,14 +85,13 @@ namespace MediLabo_Solutions.NoteService.Services
             // Supprimer de MongoDB
             var deletedCount = await repo.DeleteNotesByPatientIdAsync(patientId).ConfigureAwait(false);
             
-            // Retirer de l'index de recherche
-            foreach (var note in notesToDelete)
-            {
-                if (note.Id != null)
-                {
-                    await noteSearchService.DeleteNoteFromIndexAsync(note.Id).ConfigureAwait(false);
-                }
-            }
+            // Retirer de l'index de recherche en parallèle
+            var deleteTasks = notesToDelete
+                .Where(note => note.Id != null)
+                .Select(note => noteSearchService.DeleteNoteFromIndexAsync(note.Id!))
+                .ToArray();
+            
+            await Task.WhenAll(deleteTasks).ConfigureAwait(false);
             
             return deletedCount;
         }
