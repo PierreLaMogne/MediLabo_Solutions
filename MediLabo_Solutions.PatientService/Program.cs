@@ -104,11 +104,25 @@ if (app.Environment.IsDevelopment())
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<PatientDbContext>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
         
-        await context.Database.MigrateAsync();
-        
-        DataSeed.Seed(context);
+        try
+        {
+            var context = services.GetRequiredService<PatientDbContext>();
+            
+            logger.LogInformation("Application des migrations de la base de données...");
+            await context.Database.MigrateAsync();
+            
+            logger.LogInformation("Initialisation des données de test...");
+            await DataSeed.SeedAsync(context);
+            
+            logger.LogInformation("Base de données initialisée avec succès.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Une erreur s'est produite lors de l'initialisation de la base de données.");
+            // L'application continue même si le seed échoue
+        }
     }
 }
 
