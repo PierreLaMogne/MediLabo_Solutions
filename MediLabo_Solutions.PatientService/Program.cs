@@ -34,6 +34,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Ajouter HttpContextAccessor pour accéder au token JWT
+builder.Services.AddHttpContextAccessor();
+
+// Configuration du HttpClient pour NoteService
+builder.Services.AddHttpClient<INoteServiceClient, NoteServiceClient>(client =>
+{
+    var noteServiceUrl = builder.Configuration["ServiceUrls:NoteService"] ?? "http://noteservice:8080";
+    client.BaseAddress = new Uri(noteServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 // Ajouter la compression de réponse
 builder.Services.AddResponseCompression(options =>
 {
